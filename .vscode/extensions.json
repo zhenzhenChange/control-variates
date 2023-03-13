@@ -1,0 +1,7 @@
+{
+  // prettier-ignore
+  "recommendations": [
+    "esbenp.prettier-vscode",                 // Prettier 
+    "streetsidesoftware.code-spell-checker",  // SpellChecker
+  ]
+}

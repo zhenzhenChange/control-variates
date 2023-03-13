@@ -1,0 +1,21 @@
+{
+  "name": "control-variates",
+  "author": "zhenzhen@rayvision.com",
+  "license": "MIT",
+  "version": "1.0.0",
+  "description": "Automated testing using the control variable method.",
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "start": "tsx ./src/setup.ts",
+    "preinstall": "npx only-allow pnpm"
+  },
+  "devDependencies": {
+    "@types/envinfo": "^7.8.1",
+    "@types/node": "^16.18.14",
+    "envinfo": "^7.8.1",
+    "tsx": "^3.12.5",
+    "typescript": "^4.9.5"
+  }
+}
