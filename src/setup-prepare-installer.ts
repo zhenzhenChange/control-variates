@@ -9,4 +9,21 @@ export async function setupPrepareInstaller(pm: PM, installers: Installer[], wor
 
   spawnSync(pm, ['init'], { cwd: workspaceTmpDir })
   spawnSync(pm, ['add', '-D', ...normalizedInstallers], { cwd: workspaceTmpDir, stdio: 'inherit' })
+  console.log('\r')
+
+  run(installers)
+}
+
+function run(installers: Installer[]) {
+  const pms = installers.map(({ name }) => name)
+
+  Logger.Tips(`### Execute install command: ${pms[0]} i --ignore-scripts`)
+  console.log('\r')
+
+  const s = Date.now()
+  spawnSync(pms[0], ['i', '--ignore-scripts'], { cwd: './fixtures/3dcat-public-fs', stdio: 'inherit' })
+  const e = Date.now()
+
+  console.log('\r')
+  Logger.Info(`### Time consuming: ${e - s}`)
 }

@@ -1,6 +1,9 @@
 {
+  // prettier-ignore
   "cSpell.words": [
     "Cnpm",
+    "dcat",
     "Tnpm"
-  ]
+  ],
+  "prettier.printWidth": 100
 }

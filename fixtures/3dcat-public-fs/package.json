@@ -1,0 +1,99 @@
+{
+  "name": "3dcat-app",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "prepare": "husky install",
+    "preinstall": "npx only-allow pnpm",
+    "lint": "pnpm lint:syntax & pnpm lint:format",
+    "lint:syntax": "eslint ./**/*.{js,jsx,ts,tsx,d.ts,html} --fix --cache",
+    "lint:format": "prettier ./**/*.{js,jsx,ts,tsx,md,css,less,scss,yml,yaml,html,json} --write --cache --ignore-unknown",
+    "clean": "npx rimraf ./node_modules",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "build_test": "cross-env BUILD_PATH='./test' react-scripts build",
+    "build_develop": "cross-env BUILD_PATH='./develop' react-scripts build",
+    "build_production": "cross-env BUILD_PATH='./production' react-scripts build"
+  },
+  "dependencies": {
+    "axios": "0.19.2",
+    "connected-react-router": "^6.9.3",
+    "core-js": "^3.27.2",
+    "crypto-js": "^4.1.1",
+    "date-fns": "^2.29.3",
+    "echarts": "^5.4.1",
+    "fingerprintjs2": "2.1.4",
+    "formik": "^2.2.9",
+    "history": "^4.10.1",
+    "js-cookie": "^3.0.1",
+    "lodash": "^4.17.21",
+    "mathjs": "^11.5.0",
+    "qrcode": "^1.5.1",
+    "qs": "^6.11.0",
+    "raysync-sdk": "1.4.7",
+    "react": "^16.14.0",
+    "react-content-loader": "^6.2.0",
+    "react-datepicker": "^4.10.0",
+    "react-dom": "^16.14.0",
+    "react-helmet": "^5.2.1",
+    "react-redux": "^7.2.9",
+    "react-router": "^5.3.4",
+    "react-router-dom": "^5.3.4",
+    "react-tooltip": "^4.5.1",
+    "react-transition-group": "^4.4.5",
+    "redux": "^4.2.1",
+    "redux-saga": "^1.2.2",
+    "reselect": "^4.1.7",
+    "sanitize.css": "^13.0.0",
+    "sha1": "^1.1.1",
+    "styled-components": "^5.3.6",
+    "typesafe-actions": "^5.1.0",
+    "yup": "^0.32.11"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.12",
+    "@babel/plugin-syntax-flow": "^7.18.6",
+    "@babel/plugin-transform-react-jsx": "^7.20.13",
+    "@types/crypto-js": "^4.1.1",
+    "@types/fingerprintjs2": "^2.0.0",
+    "@types/history": "^4.7.11",
+    "@types/js-cookie": "^3.0.2",
+    "@types/lodash": "^4.14.191",
+    "@types/node": "^16.18.11",
+    "@types/qrcode": "^1.5.0",
+    "@types/qs": "^6.9.7",
+    "@types/react": "^16.14.35",
+    "@types/react-datepicker": "^4.8.0",
+    "@types/react-dom": "^16.9.17",
+    "@types/react-helmet": "^5.0.21",
+    "@types/react-redux": "^7.1.25",
+    "@types/react-router": "^5.1.20",
+    "@types/react-router-dom": "^5.3.3",
+    "@types/react-transition-group": "^4.4.5",
+    "@types/sha1": "^1.1.3",
+    "@types/styled-components": "^5.1.26",
+    "@types/webpack-env": "^1.18.0",
+    "cross-env": "^7.0.3",
+    "http-proxy-middleware": "^2.0.6",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.1.0",
+    "prettier": "^2.8.3",
+    "react-app-polyfill": "^3.0.0",
+    "react-scripts": "^5.0.1",
+    "typescript": "^4.9.5"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "react-is"
+      ]
+    }
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "proxy": "https://app-pre.3dcat.live:14431/"
+}
