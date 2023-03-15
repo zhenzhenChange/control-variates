@@ -8,6 +8,7 @@ import { getOSTmpDir, Logger } from './polyfill'
 export async function setupPrepareWorkspace(workspacePrefix: string) {
   Logger.Tips(`2. Use ${workspacePrefix} as a workspace directory prefix...`)
 
+  // TODO: 在操作系统的临时目录里频繁进行 IO 操作会导致系统卡死
   const osTmpDir = getOSTmpDir()
   await removeWorkspace(osTmpDir, workspacePrefix)
   return await createWorkspace(osTmpDir, workspacePrefix)

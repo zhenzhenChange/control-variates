@@ -1,12 +1,16 @@
-import { BenchmarkConfig, BenchmarkFixture, BenchmarkPM, BenchmarkPMCommand } from './shared'
+import { BenchmarkConfig, BenchmarkFixture, BenchmarkInstallerMap } from './shared'
 
 class BenchmarkLauncher {
   constructor(fixtures: BenchmarkFixture[]) {}
 
-  use(pm: BenchmarkPM, command: BenchmarkPMCommand, commandArgs: string[] = []) {
+  use<T extends keyof BenchmarkInstallerMap>(pm: T, command: BenchmarkInstallerMap[T], commandArgs: string[] = []) {
+    const shell = `${pm} ${command} ${commandArgs.join(' ')}`.trim()
+
+    console.log(shell)
+
     return { config: (config: BenchmarkConfig) => this.#config(config) }
   }
-
+j
   #config(config: BenchmarkConfig) {
     return { register: () => this.#register() }
   }
@@ -15,7 +19,11 @@ class BenchmarkLauncher {
     return { bootstrap: () => this.#bootstrap() }
   }
 
-  #bootstrap() {}
+  #bootstrap() {
+    return { benchmarkDone: () => this.#benchmarkDone() }
+  }
+
+  #benchmarkDone() {}
 }
 
 new BenchmarkLauncher([
@@ -29,3 +37,4 @@ new BenchmarkLauncher([
   .config({ limit: 3, prefix: 'benchmark' })
   .register(/* 注册包管理器 */)
   .bootstrap(/* 引导启动 */)
+  .benchmarkDone()

@@ -5,6 +5,7 @@
 
 import { Logger } from './polyfill'
 import { SetupConfig } from './shared'
+import { setupBenchmark } from './setup-benchmark'
 import { setupPreparePM } from './setup-prepare-pm'
 import { setupPrepareWorkspace } from './setup-prepare-workspace'
 import { setupPrepareInstaller } from './setup-prepare-installer'
@@ -18,13 +19,14 @@ export async function setup(options: SetupConfig) {
   console.log('\r')
   await setupPrepareInstaller(pm, installers, workspaceTmpDir)
   console.log('\r')
+  setupBenchmark(installers, workspaceTmpDir)
 }
 
 setup({
   pm: 'pnpm',
   installers: [
-    { name: 'npm', version: 'latest' },
-    { name: 'yarn', version: 'latest' },
+    // { name: 'npm', version: 'latest' },
+    // { name: 'yarn', version: 'latest' },
     { name: 'pnpm', version: 'latest' },
   ],
   workspacePrefix: 'control-variates',

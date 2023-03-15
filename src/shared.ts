@@ -18,9 +18,6 @@ export interface SetupConfig {
 
 /* ========================================= */
 
-export type BenchmarkPM = LiteralUnion<'npm' | 'yarn' | 'pnpm'>
-export type BenchmarkPMCommand = LiteralUnion<'add' | 'install'>
-
 export interface BenchmarkConfig {
   limit: number
   prefix: string
@@ -30,4 +27,23 @@ export interface BenchmarkConfig {
 
 export interface BenchmarkFixture {
   directory: string
+}
+
+export interface BenchmarkInstallerMap {
+  npm: 'install'
+  yarn: 'add'
+  pnpm: 'add'
+}
+
+export interface BenchmarkInstaller {
+  pm: string
+  version: string
+  variables: SwitchVariables
+}
+
+export interface SwitchVariables {
+  cache: string
+  script: string
+  peerDeps: string
+  diagnosis: string
 }
