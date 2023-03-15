@@ -1,35 +1,37 @@
 /**
  * @see https://github.com/pnpm/pnpm.github.io/tree/main/benchmarks
- * @description Reference Pnpm
+ * @description Reference to Pnpm implementation.
  */
 
-import { Logger } from './polyfill'
-import { SetupConfig } from './shared'
-import { setupBenchmark } from './setup-benchmark'
-import { setupPreparePM } from './setup-prepare-pm'
-import { setupPrepareWorkspace } from './setup-prepare-workspace'
-import { setupPrepareInstaller } from './setup-prepare-installer'
+import { BenchmarkLauncher } from './benchmark-launcher'
 
-export async function setup(options: SetupConfig) {
-  const { pm, installers, workspacePrefix } = options
-
-  await setupPreparePM(pm)
-  console.log('\r')
-  const workspaceTmpDir = await setupPrepareWorkspace(workspacePrefix)
-  console.log('\r')
-  await setupPrepareInstaller(pm, installers, workspaceTmpDir)
-  console.log('\r')
-  setupBenchmark(installers, workspaceTmpDir)
-}
-
-setup({
-  pm: 'pnpm',
-  installers: [
-    // { name: 'npm', version: 'latest' },
-    // { name: 'yarn', version: 'latest' },
-    { name: 'pnpm', version: 'latest' },
-  ],
-  workspacePrefix: 'control-variates',
-})
-  .then(() => Logger.Tips('Benchmark done.'))
-  .catch(console.log)
+new BenchmarkLauncher([
+  { dir: './fixtures/angular' },
+  { dir: './fixtures/webpack' },
+  { dir: './fixtures/3dcat-website' },
+  { dir: './fixtures/3dcat-public-bs' },
+  { dir: './fixtures/3dcat-public-fs' },
+  { dir: './fixtures/playground' },
+])
+  .use('pnpm', 'add')
+  .config({ cwd: process.cwd(), prefix: 'benchmark', cleanCache: true })
+  .register([
+    {
+      pm: 'npm',
+      commandArgs: ['--no-fund', '--no-audit', '--ignore-scripts', '--legacy-peer-deps', '--cache=.npm-cache'],
+    },
+    {
+      pm: 'yarn',
+      commandArgs: [],
+    },
+    {
+      pm: 'pnpm',
+      commandArgs: [
+        '--ignore-scripts',
+        '--no-strict-peer-dependencies',
+        '--cache-dir=.pnpm-cache',
+        '--store-dir=.pnpm-store',
+      ],
+    },
+  ])
+  .bootstrap()

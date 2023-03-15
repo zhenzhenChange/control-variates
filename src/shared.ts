@@ -1,44 +1,33 @@
 type LiteralUnion<T> = T | (string & Object)
 
-export type PM = LiteralUnion<'npm' | 'yarn' | 'pnpm'>
-export type PMCommand = LiteralUnion<'add' | 'install'>
+export type PresetPM = LiteralUnion<'npm' | 'yarn' | 'pnpm'>
 
-export interface Installer {
-  name: PM
-  version: LiteralUnion<'latest'>
-}
-
-export interface SetupConfig {
-  /** @description Use this package manager to install other package managers */
-  pm: PM
-  installers: Installer[]
-  /** @description Workspace temporary directory prefix */
-  workspacePrefix: string
-}
-
-/* ========================================= */
-
-export interface BenchmarkConfig {
-  limit: number
-  prefix: string
+export interface Config {
+  cwd?: string
+  limit?: number
+  prefix?: string
   registry?: string
   monorepo?: boolean
+  cleanCache?: boolean
+  pkgFileName?: string
+  skipPMInstall?: boolean
 }
 
-export interface BenchmarkFixture {
-  directory: string
+export interface Fixture {
+  dir: string
 }
 
-export interface BenchmarkInstallerMap {
+export interface PresetPMMap {
   npm: 'install'
   yarn: 'add'
   pnpm: 'add'
 }
 
-export interface BenchmarkInstaller {
-  pm: string
-  version: string
-  variables: SwitchVariables
+export interface Installer {
+  pm: PresetPM
+  version?: LiteralUnion<'latest'>
+  variables?: SwitchVariables
+  commandArgs?: string[]
 }
 
 export interface SwitchVariables {
