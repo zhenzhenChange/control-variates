@@ -120,16 +120,16 @@ export class Benchmark {
     const cacheDir = installer.commandVariables.cache.dir
     const storeDir = installer.commandVariables.store?.dir
     const lockFileName = installer.commandVariables.lockFileName
-    const commandArgs = this.#normalizeArgs(installer.commandVariables)
+    const installerCommandArgs = this.#normalizeArgs(installer.commandVariables)
 
-    const installCommandArgs = ['install', ...commandArgs]
+    const installCommandArgs = ['install', ...installerCommandArgs]
     Logger.Info(`## retrieved command:`, `${pm} ${installCommandArgs.join(' ')}`.trim())
     Logger.Info('## retrieved control:', '🤍 No | 🧡 Has')
     Logger.Wrap()
 
     // 1.
     Logger.Info('## 👇 control-variates:', '🤍 cache | 🤍 lockfile | 🤍 node_modules')
-    this.#cleanCache(runDir, cacheDir)
+    this.#cleanCache(runDir, cacheDir, storeDir)
     this.#cleanLockFile(runDir, lockFileName)
     this.#cleanNodeModules(runDir)
     const Time1 = this.#runInstall(pm, runDir, installCommandArgs)
@@ -146,7 +146,7 @@ export class Benchmark {
 
     // 3.
     Logger.Info('## 👇 control-variates:', '🤍 cache | 🧡 lockfile | 🤍 node_modules')
-    this.#cleanCache(runDir, cacheDir)
+    this.#cleanCache(runDir, cacheDir, storeDir)
     this.#cleanNodeModules(runDir)
     const Time3 = this.#runInstall(pm, runDir, installCommandArgs)
     Logger.Important(`## 👆 Time consuming: ${parsedPMVersion} - ${Helper.ToSeconds(Time3)}`)
@@ -154,7 +154,7 @@ export class Benchmark {
 
     // 4.
     Logger.Info('## 👇 control-variates:', '🤍 cache | 🤍 lockfile | 🧡 node_modules')
-    this.#cleanCache(runDir, cacheDir)
+    this.#cleanCache(runDir, cacheDir, storeDir)
     this.#cleanLockFile(runDir, lockFileName)
     const Time4 = this.#runInstall(pm, runDir, installCommandArgs)
     Logger.Important(`## 👆 Time consuming: ${parsedPMVersion} - ${Helper.ToSeconds(Time4)}`)
@@ -176,7 +176,7 @@ export class Benchmark {
 
     // 7.
     Logger.Info('## 👇 control-variates:', '🤍 cache | 🧡 lockfile | 🧡 node_modules')
-    this.#cleanCache(runDir, cacheDir)
+    this.#cleanCache(runDir, cacheDir, storeDir)
     const Time7 = this.#runInstall(pm, runDir, installCommandArgs)
     Logger.Important(`## 👆 Time consuming: ${parsedPMVersion} - ${Helper.ToSeconds(Time7)}`)
   }
@@ -194,42 +194,27 @@ export class Benchmark {
     return TimeE - TimeS
   }
 
-  #cleanCache(runDir: string, cacheDir: string, storeDir?: string) {
-    const merged = join(runDir, cacheDir)
+  #clean(runDir: string, cleanDir: string, cleanType: 'cache' | 'store' | 'lockfile' | 'node_modules') {
+    const merged = join(runDir, cleanDir)
     const isExist = existsSync(merged)
-    if (isExist) {
-      Logger.Info('## clean cache:', merged)
-      rimrafSync(merged)
-    }
 
-    if (storeDir) {
-      const merged = join(runDir, storeDir)
-      const isExist = existsSync(merged)
-      if (isExist) {
-        Logger.Info('## clean store:', merged)
-        rimrafSync(merged)
-      }
-    }
+    if (!isExist) return
+
+    Logger.Info(`## clean ${cleanType}:`, merged)
+    rimrafSync(merged)
+  }
+
+  #cleanCache(runDir: string, cacheDir: string, storeDir?: string) {
+    this.#clean(runDir, cacheDir, 'cache')
+    storeDir && this.#clean(runDir, storeDir, 'store')
   }
 
   #cleanLockFile(runDir: string, lockFileName: PresetPMLockFileName) {
-    const merged = join(runDir, lockFileName)
-    const isExist = existsSync(merged)
-
-    if (!isExist) return
-
-    Logger.Info('## clean lockfile:', merged)
-    rimrafSync(merged)
+    this.#clean(runDir, lockFileName, 'lockfile')
   }
 
   #cleanNodeModules(runDir: string) {
-    const merged = join(runDir, 'node_modules')
-    const isExist = existsSync(merged)
-
-    if (!isExist) return
-
-    Logger.Info('## clean node_modules:', merged)
-    rimrafSync(merged)
+    this.#clean(runDir, 'node_modules', 'node_modules')
   }
 
   #createEnv() {

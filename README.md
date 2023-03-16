@@ -82,3 +82,7 @@ pnpm benchmark
 - `@parcel/transformer-js` 包体积过大（45MB）
 
 ![boom](images/boom.png)
+
+## Benchmark Playground
+
+![benchmark-playground](fixtures/playground/benchmark.png)
