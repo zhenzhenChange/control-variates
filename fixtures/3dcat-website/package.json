@@ -31,7 +31,6 @@
     "build:support": "pnpm -F @3dcat/support build"
   },
   "dependencies": {
-    "@3dcat/gatsby-plugins": "workspace:^0.1.0",
     "fuse.js": "^5.2.3",
     "polished": "^4.2.2",
     "react": "^17.0.2",

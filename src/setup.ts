@@ -9,10 +9,10 @@ new Benchmark([
   // NOTE：受限于机器性能，目前仅支持同步模式，此阶段建议只对单一项目进行测试
   // { dir: './fixtures/angular' },
   // { dir: './fixtures/webpack' },
-  // { dir: './fixtures/3dcat-website' },
+  { dir: './fixtures/3dcat-website' },
   // { dir: './fixtures/3dcat-public-bs' },
   // { dir: './fixtures/3dcat-public-fs' },
-  { dir: './fixtures/playground' },
+  // { dir: './fixtures/playground' },
 ])
   .use('pnpm', 'add')
   .config({ cleanCache: true })
@@ -22,6 +22,7 @@ new Benchmark([
       commandArgs: [
         '--no-fund',
         '--no-audit',
+        '--legacy-peer-deps',
         '--no-strict-peer-deps',
         '--ignore-scripts',
         '--ignore-engines',

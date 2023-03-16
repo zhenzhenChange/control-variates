@@ -2,46 +2,50 @@
 
 Automated testing using the control variable method.
 
-## 包管理器概述
+## Dependencies
 
-### Yarn
+- `tsx`: Executing code in node using ESM and TS.
+- `uuid`: Generate random strings for directory creation.
+- `chalk`: Beautifying console output.
+- `rimraf`: For file deletion.
+- `typescript`: Written with TS.
+- `iconv-lite`: Solving the problem of messy Chinese output on the console.
+- `cross-spawn`: Cross-platform compatible sub-process calls.
 
-### Pnpm
+## Variables
 
-### NPM / Cnpm / Tnpm
+系统参数：
 
-## 控制变量
-
-测试基准：[Benchmarks](https://github.com/pnpm/benchmarks-of-javascript-package-managers#benchmarks-of-javascript-package-managers)
-
-版本参数：
-
+- `CPU`
+- `RAM`
+- `DISK`
 - `Node`
-- `Yarn`
-- `Pnpm`
+- `Project`
 
-变量参数：
+测试参数：
 
 - `cache`
 - `lockfile`
 - `node_modules`
 
+公平参数：
+
+- `registry`
+- `cacheDir`
+- `storeDir`
+- `ignoreScripts`
+- `ignoreEngines`
+- `ignorePeerDeps`
+
 ---
 
-测试参数：
-
-- `CPU`
-- `RAM`
-- `Project`
-
-|   命令    | cache | lockfile | node_modules |          Yarn |      Yarn PnP |          Pnpm |
-| :-------: | :---: | :------: | :----------: | ------------: | ------------: | ------------: |
-| `update`  |       |          |              | 1s <br /> 1GB | 1s <br /> 1GB | 1s <br /> 1GB |
-| `install` |       |          |              |               |               |               |
-| `install` |   ✔   |          |              |               |               |               |
-| `install` |       |    ✔     |              |               |               |               |
-| `install` |       |          |      ✔       |               |               |               |
-| `install` |   ✔   |    ✔     |              |               |               |               |
-| `install` |   ✔   |          |      ✔       |               |               |               |
-| `install` |       |    ✔     |      ✔       |               |               |               |
-| `install` |   ✔   |    ✔     |      ✔       |               |               |               |
+|  command  | cache | lockfile | node_modules | Npm | Yarn | Yarn PnP | Pnpm |
+| :-------: | :---: | :------: | :----------: | :-: | ---: | -------: | ---: |
+| `install` |       |          |              |     |      |          |      |
+| `install` |   ✔   |          |              |     |      |          |      |
+| `install` |       |    ✔     |              |     |      |          |      |
+| `install` |       |          |      ✔       |     |      |          |      |
+| `install` |   ✔   |    ✔     |              |     |      |          |      |
+| `install` |   ✔   |          |      ✔       |     |      |          |      |
+| `install` |       |    ✔     |      ✔       |     |      |          |      |
+| `install` |   ✔   |    ✔     |      ✔       |     |      |          |      |

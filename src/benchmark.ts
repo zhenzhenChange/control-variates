@@ -112,12 +112,14 @@ export class Benchmark {
     const { pm, commandArgs = [] } = installer
 
     const { stdout } = spawnSync(pm, ['--version'], { env: runEnv, cwd: runDir, encoding: DecodeStdio.STDIO_ENCODING })
+    const parsedPMVersion = `${pm} v${DecodeStdio.decode(stdout)}`
+
     Logger.Wrap()
-    Logger.Info(`## retrieved version:`, `${pm} v${DecodeStdio.decode(stdout)}`)
+    Logger.Info(`## retrieved version:`, parsedPMVersion)
 
     const merged = ['install', `--registry=${this.#benchmarkConfig.registry}`, ...commandArgs]
     Logger.Info(`## retrieved command:`, `${pm} ${merged.join(' ')}`.trim())
-    pm !== 'npm' /* npm 会自己换行 */ && Logger.Wrap()
+    Logger.Wrap()
 
     // TODO 若 package.json 中的依赖过多，当使用 Pnpm 进行安装时，磁盘占用率达到了 100%，可能会导致操作系统卡死（假死）
     const TimeS = Date.now()
@@ -125,7 +127,7 @@ export class Benchmark {
     const TimeE = Date.now()
 
     Logger.Wrap()
-    Logger.Important(`## Time consuming: ${pm} - ${Helper.ToSeconds(TimeE - TimeS)}`)
+    Logger.Important(`## Time consuming: ${parsedPMVersion} - ${Helper.ToSeconds(TimeE - TimeS)}`)
   }
 
   #createEnv() {
