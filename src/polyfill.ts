@@ -3,6 +3,12 @@ import { decode } from 'iconv-lite'
 
 export { sync as spawnSync } from 'cross-spawn'
 
+export class Helper {
+  static ToSeconds(milliseconds: number) {
+    return `${(milliseconds / 1000).toFixed(2)}s`
+  }
+}
+
 export class Logger {
   static Wrap() {
     console.log('\r')
@@ -22,6 +28,10 @@ export class Logger {
 
   static Error(log: string) {
     console.log(chalk.red(log))
+  }
+
+  static Important(log: string) {
+    console.log(chalk.rgb(242, 118, 53)(log))
   }
 }
 

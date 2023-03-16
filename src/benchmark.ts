@@ -4,7 +4,7 @@ import { env, execPath } from 'node:process'
 import { join, delimiter, dirname } from 'node:path'
 import { copyFileSync, mkdirSync, readdirSync } from 'node:fs'
 
-import { DecodeStdio, Logger, spawnSync } from './polyfill'
+import { DecodeStdio, Helper, Logger, spawnSync } from './polyfill'
 import { Config, Fixture, Installer, PresetPM, PresetPMMap } from './shared'
 
 class ConfigFactory implements Config {
@@ -30,7 +30,7 @@ export class Benchmark {
   constructor(private fixtures: Fixture[]) {}
 
   use<T extends keyof PresetPMMap>(pm: T, command: PresetPMMap[T], commandArgs: string[] = []) {
-    Logger.Tips(`# Stage-PreparePM: ${pm}`)
+    Logger.Tips(`# Stage-PreparePM`)
 
     const result = spawnSync(pm, ['--version'], { encoding: DecodeStdio.STDIO_ENCODING })
 
@@ -39,13 +39,13 @@ export class Benchmark {
       Logger.Wrap()
       throw new Error(DecodeStdio.decode(result.stderr))
     }
-    Logger.Info(`## version: v${DecodeStdio.decode(result.stdout)}`)
+    Logger.Info(`## prepare version:`, `${pm} v${DecodeStdio.decode(result.stdout)}`)
 
     this.#shellPM = pm
     this.#shellPMCommand = command
     this.#shellPMCommandArgs = commandArgs
 
-    Logger.Info(`## command: ${`${pm} ${command} ${commandArgs.join(' ')}`.trim()}`)
+    Logger.Info(`## prepare command:`, `${pm} ${command} ${commandArgs.join(' ')}`.trim())
     Logger.Wrap()
 
     return { config: (config: Config) => this.#config(config) }
@@ -55,7 +55,9 @@ export class Benchmark {
     this.#benchmarkConfig = Object.assign(new ConfigFactory(), config)
     const { cwd, prefix, cleanCache } = this.#benchmarkConfig
 
-    Logger.Tips(`# Stage-PrepareWorkSpace: ${cwd} -> ${prefix}`)
+    Logger.Tips(`# Stage-PrepareWorkSpace`)
+    Logger.Info(`## workspace:`, cwd)
+    Logger.Info(`## directory:`, prefix)
 
     cleanCache && this.#removeWorkSpace(cwd, prefix)
     this.#createWorkSpace(cwd, prefix)
@@ -67,15 +69,15 @@ export class Benchmark {
 
   #register(installers: Installer[]) {
     this.#installers = installers
-    const normalized = installers.map(({ pm, version }) => `${pm}@${version ?? 'latest'}`)
-    Logger.Tips(`# Stage-PrepareInstallers: ${normalized.join(', ')}`)
+    Logger.Tips(`# Stage-PrepareInstallers`)
 
     spawnSync(this.#shellPM, ['init'], { cwd: this.#workspace })
     Logger.Info(`## init pkgfile:`, `${join(this.#workspace, this.#benchmarkConfig.pkgFileName)}`)
 
     if (!this.#benchmarkConfig.skipPMInstall) {
+      const normalized = this.#installers.map(({ pm, version }) => `${pm}@${version ?? 'latest'}`)
       const merged = [this.#shellPMCommand, ...this.#shellPMCommandArgs, ...normalized]
-      Logger.Info(`## init install:`, `${this.#shellPM} ${merged.join(' ')}`)
+      Logger.Info(`## init command:`, `${this.#shellPM} ${merged.join(' ')}`)
       Logger.Wrap()
       spawnSync(this.#shellPM, merged, { cwd: this.#workspace, stdio: 'inherit' })
     }
@@ -86,7 +88,7 @@ export class Benchmark {
   }
 
   #bootstrap() {
-    Logger.Tips(`# Stage-SetupBenchmark`)
+    Logger.Tips(`# Stage-BootstrapBenchmark`)
 
     // TODO 开启多线程
     this.fixtures.forEach((fixture, i) => {
@@ -100,24 +102,30 @@ export class Benchmark {
         mkdirSync(runDir, { recursive: true })
         copyFileSync(fixturePkgPath, runPkgPath)
 
-        this.#runTask(installer.pm, runDir)
+        this.#runTask(runDir, installer)
       })
-
-      Logger.Wrap()
     })
   }
 
-  #runTask(pm: PresetPM, runDir: string) {
+  #runTask(runDir: string, installer: Installer) {
     const runEnv = this.#createEnv()
+    const { pm, commandArgs = [] } = installer
 
     const { stdout } = spawnSync(pm, ['--version'], { env: runEnv, cwd: runDir, encoding: DecodeStdio.STDIO_ENCODING })
-    Logger.Info(`## retrieved install: ${pm} v${DecodeStdio.decode(stdout)}`)
+    Logger.Wrap()
+    Logger.Info(`## retrieved version:`, `${pm} v${DecodeStdio.decode(stdout)}`)
 
-    // TODO
-    // const TimeS = Date.now()
-    // spawnSync(pm, ['install', '--ignore-scripts'], { cwd: runDir, stdio: 'inherit' })
-    // const TimeE = Date.now()
-    // Logger.Info(`### Time consuming: ${TimeE - TimeS}`)
+    const merged = ['install', `--registry=${this.#benchmarkConfig.registry}`, ...commandArgs]
+    Logger.Info(`## retrieved command:`, `${pm} ${merged.join(' ')}`.trim())
+    pm !== 'npm' /* npm 会自己换行 */ && Logger.Wrap()
+
+    // TODO 若 package.json 中的依赖过多，当使用 Pnpm 进行安装时，磁盘占用率达到了 100%，可能会导致操作系统卡死（假死）
+    const TimeS = Date.now()
+    spawnSync(pm, merged, { cwd: runDir, stdio: 'inherit' })
+    const TimeE = Date.now()
+
+    Logger.Wrap()
+    Logger.Important(`## Time consuming: ${pm} - ${Helper.ToSeconds(TimeE - TimeS)}`)
   }
 
   #createEnv() {
@@ -148,6 +156,7 @@ export class Benchmark {
       Logger.Warn(`## discover workspace directory ...`)
       cachedDir.forEach((dir) => Logger.Warn(`## workspace directory deleted: ${dir}`))
 
+      // TODO 增加删除 Loading
       rimrafSync(cachedDir)
     }
   }
