@@ -5,7 +5,7 @@ import { join, delimiter, dirname } from 'node:path'
 import { copyFileSync, mkdirSync, readdirSync } from 'node:fs'
 
 import { DecodeStdio, Helper, Logger, spawnSync } from './polyfill'
-import { Config, Fixture, Installer, PresetPM, PresetPMMap } from './shared'
+import { Config, Fixture, Installer, PresetPMMap } from './shared'
 
 class ConfigFactory implements Config {
   cwd = process.cwd()
@@ -121,7 +121,7 @@ export class Benchmark {
     Logger.Info(`## retrieved command:`, `${pm} ${merged.join(' ')}`.trim())
     Logger.Wrap()
 
-    // TODO 若 package.json 中的依赖过多，当使用 Pnpm 进行安装时，磁盘占用率达到了 100%，可能会导致操作系统卡死（假死）
+    // TODO 若 package.json 中的依赖过多，当使用 Pnpm 进行安装时，磁盘占用率达到了 100%，可能会导致操作系统卡死
     const TimeS = Date.now()
     spawnSync(pm, merged, { cwd: runDir, stdio: 'inherit' })
     const TimeE = Date.now()
