@@ -2,7 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@types/cross-spawn': ^6.0.2
-  '@types/node': ^16.18.14
+  '@types/node': ^16.18.16
   '@types/uuid': ^9.0.1
   chalk: ^5.2.0
   cross-spawn: ^7.0.3
@@ -14,7 +14,7 @@ specifiers:
 
 devDependencies:
   '@types/cross-spawn': 6.0.2
-  '@types/node': 16.18.14
+  '@types/node': 16.18.16
   '@types/uuid': 9.0.1
   chalk: 5.2.0
   cross-spawn: 7.0.3
@@ -248,11 +248,11 @@ packages:
   /@types/cross-spawn/6.0.2:
     resolution: {integrity: sha512-KuwNhp3eza+Rhu8IFI5HUXRP0LIhqH5cAjubUvGXXthh4YYBuP2ntwEX+Cz8GJoZUHlKo247wPWOfA9LYEq4cw==}
     dependencies:
-      '@types/node': 16.18.14
+      '@types/node': 16.18.16
     dev: true
 
-  /@types/node/16.18.14:
-    resolution: {integrity: sha512-wvzClDGQXOCVNU4APPopC2KtMYukaF1MN/W3xAmslx22Z4/IF1/izDMekuyoUlwfnDHYCIZGaj7jMwnJKBTxKw==}
+  /@types/node/16.18.16:
+    resolution: {integrity: sha512-ZOzvDRWp8dCVBmgnkIqYCArgdFOO9YzocZp8Ra25N/RStKiWvMOXHMz+GjSeVNe5TstaTmTWPucGJkDw0XXJWA==}
     dev: true
 
   /@types/uuid/9.0.1:
@@ -333,8 +333,8 @@ packages:
     resolution: {integrity: sha512-0Gdjo/9+FzsYhXCEFueo2aY1z1tpXrxWZzP7k8ul9qt1U5o8rYJwTJYmaeHdrVosYIVYkOy2iwCJ9FdpocJhPQ==}
     dev: true
 
-  /glob/9.2.1:
-    resolution: {integrity: sha512-Pxxgq3W0HyA3XUvSXcFhRSs+43Jsx0ddxcFrbjxNGkL2Ak5BAUBxLqI5G6ADDeCHLfzzXFhe0b1yYcctGmytMA==}
+  /glob/9.3.0:
+    resolution: {integrity: sha512-EAZejC7JvnQINayvB/7BJbpZpNOJ8Lrw2OZNEvQxe0vaLn1SuwMcfV7/MNaX8L/T0wmptBFI4YMtDvSBxYDc7w==}
     engines: {node: '>=16 || 14 >=14.17'}
     dependencies:
       fs.realpath: 1.0.0
@@ -389,7 +389,7 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
     dependencies:
-      glob: 9.2.1
+      glob: 9.3.0
     dev: true
 
   /safer-buffer/2.1.2:
