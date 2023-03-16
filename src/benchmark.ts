@@ -18,7 +18,7 @@ class ConfigFactory implements Config {
   skipPMInstall = false
 }
 
-export class BenchmarkLauncher {
+export class Benchmark {
   #shellPM: string
   #shellPMCommand: string
   #shellPMCommandArgs: string[]

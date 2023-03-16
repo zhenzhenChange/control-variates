@@ -3,9 +3,9 @@
  * @description Reference to Pnpm implementation.
  */
 
-import { BenchmarkLauncher } from './benchmark-launcher'
+import { Benchmark } from './benchmark'
 
-new BenchmarkLauncher([
+new Benchmark([
   { dir: './fixtures/angular' },
   { dir: './fixtures/webpack' },
   { dir: './fixtures/3dcat-website' },
