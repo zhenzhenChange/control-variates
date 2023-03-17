@@ -3,8 +3,8 @@ import { decode } from 'iconv-lite'
 import { rimrafSync } from 'rimraf'
 import { env, execPath } from 'node:process'
 import { sync as spawnSync } from 'cross-spawn'
-import { existsSync, mkdirSync, readdirSync } from 'node:fs'
 import { delimiter, dirname, join } from 'node:path'
+import { existsSync, lstatSync, mkdirSync, readdirSync } from 'node:fs'
 
 import { Logger } from './benchmark-logger'
 import { InstallerVariables, PresetPM, PresetPMVersionArgName } from './benchmark-shared'
@@ -45,6 +45,29 @@ export class IO {
     if (!existsSync(dir)) return
     rimrafSync(dir)
     cb()
+  }
+
+  static statFolder(dir: string): number {
+    const map = new Map<number, number>()
+
+    const loop = (path: string) => {
+      const stat = lstatSync(path)
+
+      if (stat.isFile()) {
+        map.set(stat.ino, stat.size)
+      } else {
+        // TODO To Async
+        readdirSync(path).forEach((subPath) => loop(join(path, subPath)))
+      }
+    }
+
+    loop(dir)
+
+    return Array.from(map.values()).reduce((prev, curr) => (prev += curr), 0)
+  }
+
+  static byteToMiB(byte: number) {
+    return `${(byte / 1024 ** 2).toFixed(2)} MiB`
   }
 
   static msToSeconds(milliseconds: number) {
@@ -102,7 +125,7 @@ export class IO {
 
     Logger.Warn(`## discover workspace directory ...`)
 
-    // TODO 增加删除 Loading | 合并遍历
+    // TODO 增加删除 Loading | 合并遍历 | To Async
     cachedDir.forEach((dir) => Logger.Warn(`## workspace directory deleted: ${dir}`))
     rimrafSync(cachedDir)
   }

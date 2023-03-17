@@ -6,8 +6,8 @@
 import { Benchmark } from './benchmark'
 
 new Benchmark([{ dir: './fixtures/playground' }])
-  .use('npm', 'add')
-  .config({ cleanLegacy: true })
+  .use('npm', 'add', { initCommandArgs: ['-y'] })
+  .config({ registry: 'https://registry.npm.taobao.org', cleanLegacy: true })
   .register([
     {
       pm: 'npm',

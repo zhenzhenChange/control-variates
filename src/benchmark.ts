@@ -149,14 +149,14 @@ export class Benchmark {
       return TimeE - TimeS
     }
 
-    const runInstallPost = () => 1
+    const runInstallPost = () => IO.statFolder(runDir)
 
     const runInstall = (cache: boolean, lockfile: boolean, node_modules: boolean): BenchmarkRecord => {
       const variates = runInstallPre(cache, lockfile, node_modules)
       const time = runInstallGo()
       const size = runInstallPost()
 
-      Logger.Important(`## 👆 Time consuming: ${parsedPMVersion} - ${IO.msToSeconds(time)}`)
+      Logger.Important(`## 👆 Time consuming: ${parsedPMVersion} -> ${IO.byteToMiB(size)} | ${IO.msToSeconds(time)}`)
       Logger.Wrap()
 
       return { time, size, variates }
