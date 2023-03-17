@@ -14,7 +14,7 @@ interface Ignores {
   strictPeerDependencies: string | string[]
 }
 
-// NOTE：提供 T 字面量类型支持的同时，也支持其它字面量值
+// NOTE：提供 T 字面量类型支持的同时，也支持其它字符串字面量值
 type LiteralUnion<T extends string> = T | (string & Object)
 
 export type PresetPM = LiteralUnion<'npm' | 'yarn' | 'pnpm'>

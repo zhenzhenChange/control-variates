@@ -6,7 +6,7 @@
 import { Benchmark } from './benchmark'
 
 new Benchmark([{ dir: './fixtures/playground' }])
-  .use('pnpm', 'add')
+  .use('npm', 'add')
   .config({ cleanLegacy: true })
   .register([
     {

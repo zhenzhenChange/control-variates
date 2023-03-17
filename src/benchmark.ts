@@ -5,6 +5,11 @@ import { IO } from './benchmark-io'
 import { Logger } from './benchmark-logger'
 import { BenchmarkRecord, Config, Fixture, Installer, PresetPMLockFileName, PresetPMMap } from './benchmark-shared'
 
+class PMCommandArgs {
+  initCommandArgs: string[] = []
+  installCommandArgs: string[] = []
+}
+
 class ConfigFactory implements Required<Config> {
   cwd = process.cwd()
   rounds = 3
@@ -19,7 +24,7 @@ class ConfigFactory implements Required<Config> {
 export class Benchmark {
   #shellPM: string
   #shellPMCommand: string
-  #shellPMCommandArgs: string[]
+  #shellPMCommandArgs: PMCommandArgs
 
   #workspace: string
   #installers: Installer[]
@@ -28,14 +33,16 @@ export class Benchmark {
   constructor(private fixtures: Fixture[]) {}
 
   // TODO 支持指定版本的探测
-  use<T extends keyof PresetPMMap>(pm: T, command: PresetPMMap[T], commandArgs: string[] = []) {
+  use<T extends keyof PresetPMMap>(pm: T, command: PresetPMMap[T], commandArgs?: Partial<PMCommandArgs>) {
+    const shellPMCommandArgs = Object.assign(new PMCommandArgs(), commandArgs)
+
     Logger.Tips(`# Stage-PreparePM`)
     Logger.Info(`## detect version:`, IO.streamToString(pm, `v${IO.detectPMVersion(pm)}`))
-    Logger.Info(`## detect command:`, IO.streamToString(pm, command, ...commandArgs))
+    Logger.Info(`## detect command:`, IO.streamToString(pm, command, ...shellPMCommandArgs.installCommandArgs))
 
     this.#shellPM = pm
     this.#shellPMCommand = command
-    this.#shellPMCommandArgs = commandArgs
+    this.#shellPMCommandArgs = shellPMCommandArgs
 
     return { config: (config?: Config) => this.#config(config) }
   }
@@ -62,12 +69,11 @@ export class Benchmark {
 
     this.#installers = installers
 
-    // TODO need command arg: --yes | output stdio
-    IO.spawnSync(this.#shellPM, ['init'], { cwd: this.#workspace })
+    IO.spawnSync(this.#shellPM, ['init', ...this.#shellPMCommandArgs.initCommandArgs], { cwd: this.#workspace, stdio: 'inherit' })
     Logger.Info(`## create pkgfile:`, join(this.#workspace, this.#benchmarkConfig.pkgFileName))
 
     const normalized = this.#installers.map(({ pm, version }) => `${pm}@${version ?? 'latest'}`)
-    const mergedCommandArgs = [this.#shellPMCommand, ...this.#shellPMCommandArgs, ...normalized]
+    const mergedCommandArgs = [this.#shellPMCommand, ...this.#shellPMCommandArgs.installCommandArgs, ...normalized]
     Logger.Info(`## create command:`, IO.streamToString(this.#shellPM, ...mergedCommandArgs))
     Logger.Wrap()
     IO.spawnSync(this.#shellPM, mergedCommandArgs, { cwd: this.#workspace, stdio: 'inherit' })
