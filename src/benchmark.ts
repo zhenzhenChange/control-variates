@@ -1,15 +1,13 @@
-import { v4 } from 'uuid'
-import { rimrafSync } from 'rimraf'
-import { env, execPath } from 'node:process'
-import { join, delimiter, dirname } from 'node:path'
-import { copyFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
+import { copyFileSync, mkdirSync } from 'node:fs'
 
-import { DecodeStdio, Helper, Logger, spawnSync } from './polyfill'
-import { Config, Fixture, Installer, InstallerVariables, PresetPM, PresetPMLockFileName, PresetPMMap } from './shared'
+import { IO } from './benchmark-io'
+import { Logger } from './benchmark-logger'
+import { BenchmarkRecord, Config, Fixture, Installer, PresetPMLockFileName, PresetPMMap } from './benchmark-shared'
 
-class ConfigFactory implements Config {
+class ConfigFactory implements Required<Config> {
   cwd = process.cwd()
-  limit = 3
+  rounds = 3
   prefix = 'benchmark'
   registry = 'https://registry.npmjs.org'
   monorepo = false
@@ -29,69 +27,60 @@ export class Benchmark {
 
   constructor(private fixtures: Fixture[]) {}
 
+  // TODO 支持指定版本的探测
   use<T extends keyof PresetPMMap>(pm: T, command: PresetPMMap[T], commandArgs: string[] = []) {
     Logger.Tips(`# Stage-PreparePM`)
-
-    const result = spawnSync(pm, ['--version'], { encoding: DecodeStdio.STDIO_ENCODING })
-
-    if (result.error) {
-      Logger.Error(`## Failed Detection: ${pm} may not be installed yet.`)
-      Logger.Wrap()
-      throw new Error(DecodeStdio.decode(result.stderr))
-    }
-    Logger.Info(`## prepare version:`, `${pm} v${DecodeStdio.decode(result.stdout)}`)
+    Logger.Info(`## detect version:`, IO.streamToString(pm, `v${IO.detectPMVersion(pm)}`))
+    Logger.Info(`## detect command:`, IO.streamToString(pm, command, ...commandArgs))
 
     this.#shellPM = pm
     this.#shellPMCommand = command
     this.#shellPMCommandArgs = commandArgs
 
-    Logger.Info(`## prepare command:`, `${pm} ${command} ${commandArgs.join(' ')}`.trim())
-    Logger.Wrap()
-
     return { config: (config?: Config) => this.#config(config) }
   }
 
   #config(config?: Config) {
+    Logger.Wrap()
+
     this.#benchmarkConfig = Object.assign(new ConfigFactory(), config)
     const { cwd, prefix, cleanLegacy } = this.#benchmarkConfig
 
     Logger.Tips(`# Stage-PrepareWorkSpace`)
-    Logger.Info(`## workspace:`, cwd)
-    Logger.Info(`## directory:`, prefix)
+    Logger.Info(`## deploy workspace:`, cwd)
+    Logger.Info(`## deploy directory:`, prefix)
 
-    cleanLegacy && this.#removeWorkSpace(cwd, prefix)
-    this.#createWorkSpace(cwd, prefix)
-
-    Logger.Wrap()
+    cleanLegacy && IO.removeWorkSpace(cwd, prefix)
+    this.#workspace = IO.createWorkSpace(cwd, prefix)
 
     return { register: (installers: Installer[]) => this.#register(installers) }
   }
 
   #register(installers: Installer[]) {
-    this.#installers = installers
+    Logger.Wrap()
     Logger.Tips(`# Stage-PrepareInstallers`)
 
-    spawnSync(this.#shellPM, ['init'], { cwd: this.#workspace })
-    Logger.Info(`## init pkgfile:`, `${join(this.#workspace, this.#benchmarkConfig.pkgFileName)}`)
+    this.#installers = installers
 
-    if (!this.#benchmarkConfig.skipPMInstall) {
-      const normalized = this.#installers.map(({ pm, version }) => `${pm}@${version ?? 'latest'}`)
-      const merged = [this.#shellPMCommand, ...this.#shellPMCommandArgs, ...normalized]
-      Logger.Info(`## init command:`, `${this.#shellPM} ${merged.join(' ')}`)
-      Logger.Wrap()
-      spawnSync(this.#shellPM, merged, { cwd: this.#workspace, stdio: 'inherit' })
-    }
+    // TODO need command arg: --yes | output stdio
+    IO.spawnSync(this.#shellPM, ['init'], { cwd: this.#workspace })
+    Logger.Info(`## create pkgfile:`, join(this.#workspace, this.#benchmarkConfig.pkgFileName))
 
+    const normalized = this.#installers.map(({ pm, version }) => `${pm}@${version ?? 'latest'}`)
+    const mergedCommandArgs = [this.#shellPMCommand, ...this.#shellPMCommandArgs, ...normalized]
+    Logger.Info(`## create command:`, IO.streamToString(this.#shellPM, ...mergedCommandArgs))
     Logger.Wrap()
+    IO.spawnSync(this.#shellPM, mergedCommandArgs, { cwd: this.#workspace, stdio: 'inherit' })
 
     return { bootstrap: () => this.#bootstrap() }
   }
 
   #bootstrap() {
+    Logger.Wrap()
     Logger.Tips(`# Stage-BootstrapBenchmark`)
 
-    // TODO 开启多线程
-    this.fixtures.forEach((fixture, i) => {
+    // TODO 开启多线程 | 代码优化
+    this.fixtures.forEach((fixture) => {
       const fixturePkgPath = join(this.#benchmarkConfig.cwd, fixture.dir, this.#benchmarkConfig.pkgFileName)
       Logger.Info('## retrieved pkgfile:', fixturePkgPath)
 
@@ -102,164 +91,99 @@ export class Benchmark {
         mkdirSync(runDir, { recursive: true })
         copyFileSync(fixturePkgPath, runPkgPath)
 
-        this.#runTask(runDir, installer)
+        // TODO Output SVG + JSON
+        const records = this.#runTask(runDir, installer)
+        console.log(records)
       })
     })
   }
 
   #runTask(runDir: string, installer: Installer) {
-    const { pm } = installer
-    const runEnv = this.#createEnv()
+    const runEnv = IO.createEnv(this.#workspace)
+    const { pm, commandVariables } = installer
+    const benchmarkRecords: BenchmarkRecord[] = []
 
-    const { stdout } = spawnSync(pm, ['--version'], { env: runEnv, cwd: runDir, encoding: DecodeStdio.STDIO_ENCODING })
-    const parsedPMVersion = `${pm} v${DecodeStdio.decode(stdout)}`
+    const version = IO.detectPMVersion(pm, { cwd: runDir, env: runEnv })
+    const parsedPMVersion = IO.streamToString(pm, `v${version}`)
 
     Logger.Wrap()
     Logger.Info(`## retrieved version:`, parsedPMVersion)
 
-    const cacheDir = installer.commandVariables.cache.dir
-    const storeDir = installer.commandVariables.store?.dir
-    const lockFileName = installer.commandVariables.lockFileName
-    const installerCommandArgs = this.#normalizeArgs(installer.commandVariables)
-
-    const installCommandArgs = ['install', ...installerCommandArgs]
+    const installCommandArgs = ['install', ...IO.normalizeArgs(this.#benchmarkConfig.registry, commandVariables)]
     Logger.Info(`## retrieved command:`, `${pm} ${installCommandArgs.join(' ')}`.trim())
     Logger.Info('## retrieved control:', '🤍 No | 🧡 Has')
     Logger.Wrap()
 
-    // 1.
-    Logger.Info('## 👇 control-variates:', '🤍 cache | 🤍 lockfile | 🤍 node_modules')
-    this.#cleanCache(runDir, cacheDir, storeDir)
-    this.#cleanLockFile(runDir, lockFileName)
-    this.#cleanNodeModules(runDir)
-    const Time1 = this.#runInstall(pm, runDir, installCommandArgs)
-    Logger.Important(`## 👆 Time consuming: ${parsedPMVersion} - ${Helper.ToSeconds(Time1)}`)
-    Logger.Wrap()
+    /* ====================================================== benchmark ====================================================== */
 
-    // 2.
-    Logger.Info('## 👇 control-variates:', '🧡 cache | 🤍 lockfile | 🤍 node_modules')
-    this.#cleanLockFile(runDir, lockFileName)
-    this.#cleanNodeModules(runDir)
-    const Time2 = this.#runInstall(pm, runDir, installCommandArgs)
-    Logger.Important(`## 👆 Time consuming: ${parsedPMVersion} - ${Helper.ToSeconds(Time2)}`)
-    Logger.Wrap()
+    const runInstallPre = (cache: boolean, lockfile: boolean, node_modules: boolean) => {
+      const cacheHeart = IO.createHeart(cache)
+      const lockfileHeart = IO.createHeart(lockfile)
+      const node_modulesHeart = IO.createHeart(node_modules)
+      const mergedVariatesHeart = `${cacheHeart} cache | ${lockfileHeart} lockfile | ${node_modulesHeart} node_modules`
 
-    // 3.
-    Logger.Info('## 👇 control-variates:', '🤍 cache | 🧡 lockfile | 🤍 node_modules')
-    this.#cleanCache(runDir, cacheDir, storeDir)
-    this.#cleanNodeModules(runDir)
-    const Time3 = this.#runInstall(pm, runDir, installCommandArgs)
-    Logger.Important(`## 👆 Time consuming: ${parsedPMVersion} - ${Helper.ToSeconds(Time3)}`)
-    Logger.Wrap()
+      Logger.Important(`## 👇 Control variates: ${mergedVariatesHeart}`)
 
-    // 4.
-    Logger.Info('## 👇 control-variates:', '🤍 cache | 🤍 lockfile | 🧡 node_modules')
-    this.#cleanCache(runDir, cacheDir, storeDir)
-    this.#cleanLockFile(runDir, lockFileName)
-    const Time4 = this.#runInstall(pm, runDir, installCommandArgs)
-    Logger.Important(`## 👆 Time consuming: ${parsedPMVersion} - ${Helper.ToSeconds(Time4)}`)
-    Logger.Wrap()
+      !cache && this.#cleanCache(runDir, commandVariables.cache.dir, commandVariables.store?.dir)
+      !lockfile && this.#cleanLockFile(runDir, commandVariables.lockFileName)
+      !node_modules && this.#cleanNodeModules(runDir)
 
-    // 5.
-    Logger.Info('## 👇 control-variates:', '🧡 cache | 🧡 lockfile | 🤍 node_modules')
-    this.#cleanNodeModules(runDir)
-    const Time5 = this.#runInstall(pm, runDir, installCommandArgs)
-    Logger.Important(`## 👆 Time consuming: ${parsedPMVersion} - ${Helper.ToSeconds(Time5)}`)
-    Logger.Wrap()
+      return mergedVariatesHeart
+    }
 
-    // 6.
-    Logger.Info('## 👇 control-variates:', '🧡 cache | 🤍 lockfile | 🧡 node_modules')
-    this.#cleanLockFile(runDir, lockFileName)
-    const Time6 = this.#runInstall(pm, runDir, installCommandArgs)
-    Logger.Important(`## 👆 Time consuming: ${parsedPMVersion} - ${Helper.ToSeconds(Time6)}`)
-    Logger.Wrap()
+    const runInstallGo = () => {
+      Logger.Wrap()
 
-    // 7.
-    Logger.Info('## 👇 control-variates:', '🤍 cache | 🧡 lockfile | 🧡 node_modules')
-    this.#cleanCache(runDir, cacheDir, storeDir)
-    const Time7 = this.#runInstall(pm, runDir, installCommandArgs)
-    Logger.Important(`## 👆 Time consuming: ${parsedPMVersion} - ${Helper.ToSeconds(Time7)}`)
-  }
+      const TimeS = Date.now()
+      IO.spawnSync(pm, installCommandArgs, { cwd: runDir, stdio: 'inherit' })
+      const TimeE = Date.now()
 
-  #runInstall(pm: PresetPM, runDir: string, installCommand: string[]) {
-    Logger.Wrap()
+      Logger.Wrap()
 
-    // TODO 若 package.json 中的依赖过多，当使用 Pnpm 进行安装时，磁盘占用率达到了 100%，可能会导致操作系统卡死
-    const TimeS = Date.now()
-    spawnSync(pm, installCommand, { cwd: runDir, stdio: 'inherit' })
-    const TimeE = Date.now()
+      return TimeE - TimeS
+    }
 
-    Logger.Wrap()
+    const runInstallPost = () => 1
 
-    return TimeE - TimeS
-  }
+    const runInstall = (cache: boolean, lockfile: boolean, node_modules: boolean): BenchmarkRecord => {
+      const variates = runInstallPre(cache, lockfile, node_modules)
+      const time = runInstallGo()
+      const size = runInstallPost()
 
-  #clean(runDir: string, cleanDir: string, cleanType: 'cache' | 'store' | 'lockfile' | 'node_modules') {
-    const merged = join(runDir, cleanDir)
-    const isExist = existsSync(merged)
+      Logger.Important(`## 👆 Time consuming: ${parsedPMVersion} - ${IO.msToSeconds(time)}`)
+      Logger.Wrap()
 
-    if (!isExist) return
+      return { time, size, variates }
+    }
 
-    Logger.Info(`## clean ${cleanType}:`, merged)
-    rimrafSync(merged)
+    benchmarkRecords.push(runInstall(false, false, false))
+    benchmarkRecords.push(runInstall(true, false, false))
+    benchmarkRecords.push(runInstall(false, true, false))
+    benchmarkRecords.push(runInstall(false, false, true))
+    benchmarkRecords.push(runInstall(true, true, false))
+    benchmarkRecords.push(runInstall(true, false, true))
+    benchmarkRecords.push(runInstall(false, true, true))
+
+    return benchmarkRecords
   }
 
   #cleanCache(runDir: string, cacheDir: string, storeDir?: string) {
-    this.#clean(runDir, cacheDir, 'cache')
-    storeDir && this.#clean(runDir, storeDir, 'store')
+    const mergedCacheDir = join(runDir, cacheDir)
+    IO.cleanDir(mergedCacheDir, () => Logger.Info(`## clean cache:`, mergedCacheDir))
+
+    // Soft and hard links exclusive
+    if (!storeDir) return
+    const mergedStoreDir = join(runDir, storeDir)
+    IO.cleanDir(mergedStoreDir, () => Logger.Info(`## clean store:`, mergedStoreDir))
   }
 
   #cleanLockFile(runDir: string, lockFileName: PresetPMLockFileName) {
-    this.#clean(runDir, lockFileName, 'lockfile')
+    const mergedDir = join(runDir, lockFileName)
+    IO.cleanDir(mergedDir, () => Logger.Info(`## clean lockfile:`, mergedDir))
   }
 
   #cleanNodeModules(runDir: string) {
-    this.#clean(runDir, 'node_modules', 'node_modules')
-  }
-
-  #createEnv() {
-    const pathKey = 'PATH'
-    const stdioEnv = Object.create(env) as NodeJS.ProcessEnv
-
-    const installersPath = join(this.#workspace, 'node_modules', '.bin')
-    stdioEnv[pathKey] = [installersPath, dirname(execPath), env[pathKey]].join(delimiter)
-
-    return stdioEnv
-  }
-
-  #normalizeArgs(commandVariables: InstallerVariables) {
-    const commandArgs: string[] = []
-    const { args = [], cache, store, ignores } = commandVariables
-
-    commandArgs.push(`--registry=${this.#benchmarkConfig.registry}`)
-    commandArgs.push(...args)
-    commandArgs.push(...Object.values(ignores))
-    commandArgs.push(`${cache.key}=${cache.dir}`)
-    store && commandArgs.push(`${store.key}=${store.dir}`)
-
-    return commandArgs
-  }
-
-  #createWorkSpace(cwd: string, prefix: string) {
-    Logger.Info(`## generate workspace directory ...`)
-
-    this.#workspace = join(cwd, `${prefix}-${v4()}`)
-    mkdirSync(this.#workspace)
-
-    Logger.Info(`## workspace directory created: ${this.#workspace}`)
-  }
-
-  #removeWorkSpace(cwd: string, prefix: string) {
-    const cachedDir = readdirSync(cwd)
-      .filter((dir) => dir.includes(prefix))
-      .map((dir) => join(cwd, dir))
-
-    if (cachedDir.length) {
-      Logger.Warn(`## discover workspace directory ...`)
-      cachedDir.forEach((dir) => Logger.Warn(`## workspace directory deleted: ${dir}`))
-
-      // TODO 增加删除 Loading
-      rimrafSync(cachedDir)
-    }
+    const mergedDir = join(runDir, 'node_modules')
+    IO.cleanDir(mergedDir, () => Logger.Info(`## clean node_modules:`, mergedDir))
   }
 }

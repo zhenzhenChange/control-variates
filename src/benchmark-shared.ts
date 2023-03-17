@@ -1,7 +1,26 @@
-type LiteralUnion<T> = T | (string & Object)
+interface KD {
+  /** @description 参数键 */
+  key: string
+  /** @description 目录值 */
+  dir: string
+}
+
+interface Ignores {
+  /** @description 忽略脚本执行的参数 */
+  scripts: string
+  /** @description 忽略引擎检查的参数 */
+  engines?: string
+  /** @description 忽略 PeerDeps 检查的参数 */
+  strictPeerDependencies: string | string[]
+}
+
+// NOTE：提供 T 字面量类型支持的同时，也支持其它字面量值
+type LiteralUnion<T extends string> = T | (string & Object)
 
 export type PresetPM = LiteralUnion<'npm' | 'yarn' | 'pnpm'>
+export type PresetPMMap = Record<PresetPM, 'add'>
 export type PresetPMLockFileName = LiteralUnion<'yarn.lock' | 'pnpm-lock.yaml' | 'package-lock.json'>
+export type PresetPMVersionArgName = LiteralUnion<'--version'>
 
 export interface Config {
   /**
@@ -51,12 +70,6 @@ export interface Fixture {
   dir: string
 }
 
-export interface PresetPMMap {
-  npm: 'install'
-  yarn: 'add'
-  pnpm: 'add'
-}
-
 export interface Installer {
   /** @description 包管理器 */
   pm: PresetPM
@@ -67,22 +80,6 @@ export interface Installer {
   version?: LiteralUnion<'latest'>
   /** @description 命令参数 */
   commandVariables: InstallerVariables
-}
-
-interface KD {
-  /** @description 参数键 */
-  key: string
-  /** @description 目录值 */
-  dir: string
-}
-
-interface Ignores {
-  /** @description 忽略脚本执行的参数 */
-  scripts: string
-  /** @description 忽略引擎检查的参数 */
-  engines?: string
-  /** @description 忽略 PeerDeps 检查的参数 */
-  strictPeerDependencies: string | string[]
 }
 
 export interface InstallerVariables {
@@ -96,4 +93,13 @@ export interface InstallerVariables {
   ignores: Ignores
   /** @description 锁依赖版本文件名 */
   lockFileName: PresetPMLockFileName
+}
+
+export interface BenchmarkRecord {
+  /** @description 跑分耗时 */
+  time: number
+  /** @description 磁盘占用 */
+  size?: number
+  /** @description 控制变量 */
+  variates: string
 }
