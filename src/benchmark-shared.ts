@@ -96,11 +96,17 @@ export interface InstallerVariables {
   lockFileName: PresetPMLockFileName
 }
 
+export interface BenchmarkResult {
+  pm: PresetPM
+  version: string
+  records: BenchmarkRecord[]
+}
+
 export interface BenchmarkRecord {
-  /** @description 跑分耗时 */
+  /** @description 跑分耗时（ms） */
   time: number
-  /** @description 磁盘占用 */
-  size?: number
+  /** @description 磁盘占用（byte） */
+  size: number
   /** @description 控制变量 */
   variates: string
 }

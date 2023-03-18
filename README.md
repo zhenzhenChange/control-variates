@@ -9,6 +9,12 @@ pnpm i
 pnpm benchmark
 ```
 
+```text
+# Benchmark Results:
+## fixtures/xxx/benchmark-results.svg
+## fixtures/xxx/benchmark-results.json
+```
+
 ## Dependencies
 
 - `tsx`: Executing code in node using ESM and TS.
@@ -88,7 +94,3 @@ pnpm benchmark
 - `@parcel/transformer-js` 包体积过大（45MB）
 
 ![boom](images/boom.png)
-
-## Benchmark Playground
-
-![benchmark-playground](fixtures/playground/benchmark.png)

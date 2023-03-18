@@ -1,9 +1,9 @@
 import { join } from 'node:path'
-import { copyFileSync, mkdirSync } from 'node:fs'
+import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs'
 
 import { IO } from './benchmark-io'
 import { Logger } from './benchmark-logger'
-import { BenchmarkRecord, Config, Fixture, Installer, PresetPMLockFileName, PresetPMMap } from './benchmark-shared'
+import { BenchmarkRecord, BenchmarkResult, Config, Fixture, Installer, PresetPMLockFileName, PresetPMMap } from './benchmark-shared'
 
 class PMCommandArgs {
   initCommandArgs: string[] = []
@@ -85,29 +85,33 @@ export class Benchmark {
     Logger.Wrap()
     Logger.Tips(`# Stage-BootstrapBenchmark`)
 
-    // TODO 开启多线程 | 代码优化
+    // TODO 开启多线程
     this.fixtures.forEach((fixture) => {
-      const fixturePkgPath = join(this.#benchmarkConfig.cwd, fixture.dir, this.#benchmarkConfig.pkgFileName)
+      const fixtureDir = join(this.#benchmarkConfig.cwd, fixture.dir)
+      const fixturePkgPath = join(fixtureDir, this.#benchmarkConfig.pkgFileName)
       Logger.Info('## retrieved pkgfile:', fixturePkgPath)
 
-      this.#installers.forEach((installer) => {
+      const results = this.#installers.map((installer) => {
         const runDir = join(this.#workspace, fixture.dir, installer.pm)
         const runPkgPath = join(runDir, this.#benchmarkConfig.pkgFileName)
 
         mkdirSync(runDir, { recursive: true })
         copyFileSync(fixturePkgPath, runPkgPath)
 
-        // TODO Output SVG + JSON
-        const records = this.#runTask(runDir, installer)
-        console.log(records)
+        return this.#runTask(runDir, installer)
       })
+
+      const outputDir = join(fixtureDir, 'benchmark-results.json')
+      writeFileSync(outputDir, JSON.stringify(results, null, 2))
+
+      Logger.Finally(`## ${fixture.dir} benchmark done, output directory: ${outputDir}`)
+      Logger.Wrap()
     })
   }
 
-  #runTask(runDir: string, installer: Installer) {
+  #runTask(runDir: string, installer: Installer): BenchmarkResult {
     const runEnv = IO.createEnv(this.#workspace)
     const { pm, commandVariables } = installer
-    const benchmarkRecords: BenchmarkRecord[] = []
 
     const version = IO.detectPMVersion(pm, { cwd: runDir, env: runEnv })
     const parsedPMVersion = IO.streamToString(pm, `v${version}`)
@@ -162,15 +166,19 @@ export class Benchmark {
       return { time, size, variates }
     }
 
-    benchmarkRecords.push(runInstall(false, false, false))
-    benchmarkRecords.push(runInstall(true, false, false))
-    benchmarkRecords.push(runInstall(false, true, false))
-    benchmarkRecords.push(runInstall(false, false, true))
-    benchmarkRecords.push(runInstall(true, true, false))
-    benchmarkRecords.push(runInstall(true, false, true))
-    benchmarkRecords.push(runInstall(false, true, true))
-
-    return benchmarkRecords
+    return {
+      pm,
+      version,
+      records: [
+        runInstall(false, false, false),
+        runInstall(true, false, false),
+        runInstall(false, true, false),
+        runInstall(false, false, true),
+        runInstall(true, true, false),
+        runInstall(true, false, true),
+        runInstall(false, true, true),
+      ],
+    }
   }
 
   #cleanCache(runDir: string, cacheDir: string, storeDir?: string) {

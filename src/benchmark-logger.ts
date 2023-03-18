@@ -21,6 +21,10 @@ export class Logger {
     console.log(chalk.red(log))
   }
 
+  static Finally(log: unknown) {
+    console.log(chalk.rgb(82, 82, 136)(log))
+  }
+
   static Important(log: unknown) {
     console.log(chalk.rgb(242, 118, 53)(log))
   }
