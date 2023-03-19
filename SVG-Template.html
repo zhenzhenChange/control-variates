@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ documentTitle }}</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+
+      #container {
+        width: calc(100vw - 64px);
+        height: calc(100vh - 64px);
+        padding: 32px;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.1/dist/echarts.min.js"></script>
+  </head>
+  <body>
+    <div id="container"></div>
+
+    <script>
+      const msToSeconds = (milliseconds) => `${(milliseconds / 1000).toFixed(2)}s`
+
+      const documentTitle = '{{ documentTitle }}'
+      const benchmarkYAxis = JSON.parse('{{ benchmarkYAxis }}')
+      const benchmarkResults = JSON.parse('{{ benchmarkResults }}')
+
+      echarts.init(document.getElementById('container'), null, { renderer: 'svg' }).setOption({
+        grid: { left: '3%', right: '3%', bottom: '3%', containLabel: true },
+        title: { text: documentTitle },
+        legend: {},
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, valueFormatter: (value) => msToSeconds(value) },
+        xAxis: { type: 'value', boundaryGap: [0, 0.01] },
+        yAxis: { type: 'category', data: benchmarkYAxis },
+        series: benchmarkResults.map((result) => ({
+          type: 'bar',
+          name: result.pm,
+          data: result.records.map((record) => record.time),
+          label: {
+            show: true,
+            position: 'right',
+            formatter: ({ value }) => msToSeconds(value),
+          },
+        })),
+      })
+    </script>
+  </body>
+</html>

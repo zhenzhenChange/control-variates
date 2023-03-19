@@ -1,5 +1,4 @@
 fixtures/**/.*
 fixtures/**/*lock*
-fixtures/**/benchmark-*
 benchmark-*/
 node_modules

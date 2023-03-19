@@ -28,7 +28,6 @@
   "dependencies": {
     "@ant-design/icons": "^4.2.2",
     "@babel/runtime": "^7.9.6",
-    "@tencent/mktui-tools": "https://d3g.qq.com/tsa/tencent-mktui-tools-1.1.2.tgz",
     "@types/classnames": "^2.2.10",
     "@types/lodash": "^4.14.162",
     "@types/react-router-dom": "^5.1.6",

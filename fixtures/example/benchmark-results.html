@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>./fixtures/example</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+
+      #container {
+        width: calc(100vw - 64px);
+        height: calc(100vh - 64px);
+        padding: 32px;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.1/dist/echarts.min.js"></script>
+  </head>
+  <body>
+    <div id="container"></div>
+
+    <script>
+      const msToSeconds = (milliseconds) => `${(milliseconds / 1000).toFixed(2)}s`
+
+      const documentTitle = './fixtures/example'
+      const benchmarkYAxis = JSON.parse('["🤍 cache | 🤍 lockfile | 🤍 node_modules","🧡 cache | 🤍 lockfile | 🤍 node_modules","🤍 cache | 🧡 lockfile | 🤍 node_modules","🤍 cache | 🤍 lockfile | 🧡 node_modules","🧡 cache | 🧡 lockfile | 🤍 node_modules","🧡 cache | 🤍 lockfile | 🧡 node_modules","🤍 cache | 🧡 lockfile | 🧡 node_modules"]')
+      const benchmarkResults = JSON.parse('[{"pm":"npm","version":"9.6.2","records":[{"time":156284,"size":577135057,"variates":"🤍 cache | 🤍 lockfile | 🤍 node_modules"},{"time":106130,"size":615751321,"variates":"🧡 cache | 🤍 lockfile | 🤍 node_modules"},{"time":151687,"size":515876204,"variates":"🤍 cache | 🧡 lockfile | 🤍 node_modules"},{"time":13778,"size":430127376,"variates":"🤍 cache | 🤍 lockfile | 🧡 node_modules"},{"time":142690,"size":492083569,"variates":"🧡 cache | 🧡 lockfile | 🤍 node_modules"},{"time":12020,"size":492086846,"variates":"🧡 cache | 🤍 lockfile | 🧡 node_modules"},{"time":10476,"size":423052773,"variates":"🤍 cache | 🧡 lockfile | 🧡 node_modules"}]},{"pm":"yarn","version":"1.22.19","records":[{"time":213464,"size":1037590455,"variates":"🤍 cache | 🤍 lockfile | 🤍 node_modules"},{"time":79140,"size":1037590455,"variates":"🧡 cache | 🤍 lockfile | 🤍 node_modules"},{"time":107404,"size":1023445305,"variates":"🤍 cache | 🧡 lockfile | 🤍 node_modules"},{"time":159746,"size":1031370069,"variates":"🤍 cache | 🤍 lockfile | 🧡 node_modules"},{"time":40285,"size":1031353330,"variates":"🧡 cache | 🧡 lockfile | 🤍 node_modules"},{"time":54815,"size":1031373551,"variates":"🧡 cache | 🤍 lockfile | 🧡 node_modules"},{"time":1163,"size":519320360,"variates":"🤍 cache | 🧡 lockfile | 🧡 node_modules"}]},{"pm":"pnpm","version":"7.29.3","records":[{"time":67285,"size":421959941,"variates":"🤍 cache | 🤍 lockfile | 🤍 node_modules"},{"time":38951,"size":448689369,"variates":"🧡 cache | 🤍 lockfile | 🤍 node_modules"},{"time":53340,"size":390187190,"variates":"🤍 cache | 🧡 lockfile | 🤍 node_modules"},{"time":32001,"size":708396681,"variates":"🤍 cache | 🤍 lockfile | 🧡 node_modules"},{"time":33976,"size":407099875,"variates":"🧡 cache | 🧡 lockfile | 🤍 node_modules"},{"time":6564,"size":406975963,"variates":"🧡 cache | 🤍 lockfile | 🧡 node_modules"},{"time":2170,"size":387816133,"variates":"🤍 cache | 🧡 lockfile | 🧡 node_modules"}]}]')
+
+      echarts.init(document.getElementById('container'), null, { renderer: 'svg' }).setOption({
+        grid: { left: '3%', right: '3%', bottom: '3%', containLabel: true },
+        title: { text: documentTitle },
+        legend: {},
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, valueFormatter: (value) => msToSeconds(value) },
+        xAxis: { type: 'value', boundaryGap: [0, 0.01] },
+        yAxis: { type: 'category', data: benchmarkYAxis },
+        series: benchmarkResults.map((result) => ({
+          type: 'bar',
+          name: result.pm,
+          data: result.records.map((record) => record.time),
+          label: {
+            show: true,
+            position: 'right',
+            formatter: ({ value }) => msToSeconds(value),
+          },
+        })),
+      })
+    </script>
+  </body>
+</html>

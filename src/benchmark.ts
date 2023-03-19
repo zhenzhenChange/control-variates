@@ -3,6 +3,7 @@ import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs'
 
 import { IO } from './benchmark-io'
 import { Logger } from './benchmark-logger'
+import { createSVGTemplate } from './benchmark-svg'
 import { BenchmarkRecord, BenchmarkResult, Config, Fixture, Installer, PresetPMLockFileName, PresetPMMap } from './benchmark-shared'
 
 class PMCommandArgs {
@@ -101,10 +102,14 @@ export class Benchmark {
         return this.#runTask(runDir, installer)
       })
 
-      const outputDir = join(fixtureDir, 'benchmark-results.json')
-      writeFileSync(outputDir, JSON.stringify(results, null, 2))
+      const outputHTMLDir = join(fixtureDir, 'benchmark-results.html')
+      const outputJSONDir = join(fixtureDir, 'benchmark-results.json')
+      writeFileSync(outputJSONDir, JSON.stringify(results, null, 2))
+      writeFileSync(outputHTMLDir, createSVGTemplate(fixture.dir, results))
 
-      Logger.Finally(`## ${fixture.dir} benchmark done, output directory: ${outputDir}`)
+      Logger.Finally(`## ${fixture.dir} benchmark done.`)
+      Logger.Finally(`## output JSON directory: ${outputJSONDir}`)
+      Logger.Finally(`## output HTML directory: ${outputHTMLDir}`)
       Logger.Wrap()
     })
   }
