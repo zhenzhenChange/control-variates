@@ -1,6 +1,6 @@
 /**
  * @see https://github.com/pnpm/pnpm.github.io/tree/main/benchmarks
- * @description 由于 Pnpm 的跑分代码扩展性太弱，故重写（部分逻辑参考 Pnpm 的实现）。
+ * @description 由于 Pnpm 的跑分代码扩展性太弱，故重写（部分逻辑参考 Pnpm Benchmarks 的实现）。
  */
 
 import { Benchmark } from './benchmark'

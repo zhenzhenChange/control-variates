@@ -11,7 +11,7 @@ pnpm benchmark
 
 ```text
 # Benchmark Results:
-## fixtures/xxx/benchmark-results.svg
+## fixtures/xxx/benchmark-results.html
 ## fixtures/xxx/benchmark-results.json
 ```
 
@@ -63,21 +63,25 @@ pnpm benchmark
 
 ## Todo
 
+- [ ] 可视化操作
 - [ ] 跨平台兼容
-- [ ] 输出系统信息
-- [x] 输出磁盘占用
+- [ ] 输出系统配置
+- [ ] 文件删除
+  - [ ] 异步删除
+  - [ ] 增加 Loading
 - [ ] 支持`monorepo`
-- [ ] 修正 pnpm cache 删除缺失的问题
-- [ ] 增加删除文件时的 Loading
 - [ ] 支持变更依赖内容
-  - `Yarn v3 PnP`（目前仅横向对比`Yarn v1 Classic`是不公平的）
-- [ ] 支持并发任务（在此类自动化任务中，极大程度上受限于机器性能）
+- [ ] 支持多线程（限制系统参数）
+  - [ ] 尝试使用 Rust 重写
 
-最终，根据跑分结果（各个包管理器在不同的变量控制下的表现），分析并总结其内部结构与工作流程。
+## 重点审查
+
+- [ ] 检查 Pnpm 有关缺失缓存的测试用例数据异常问题
+- [ ] 根据跑分结果，分析并总结其内部结构与工作流程
 
 ## 遗留问题
 
-若`package.json`中的依赖过多，当使用`Pnpm`进行安装时，若机器性能较弱，磁盘的占用率会长时间处于 100%。
+若`package.json`中的依赖过多（标准项目，20 ~ 30 个依赖左右），当使用`Pnpm`进行安装时，若机器性能较弱，磁盘的占用率会长时间处于 100%。
 
 **这有可能会导致操作系统卡死，只能强制按关机键重启，可能会丢失数据。**
 
