@@ -1,4 +1,2 @@
-fixtures/**/.*
-fixtures/**/*lock*
-benchmark-*/
+.benchmark
 node_modules

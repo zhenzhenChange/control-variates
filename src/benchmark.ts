@@ -7,18 +7,24 @@ import { createSVGTemplate } from './benchmark-svg'
 import { BenchmarkRecord, BenchmarkResult, Config, Fixture, Installer, PresetPMLockFileName, PresetPMMap } from './benchmark-shared'
 
 class PMCommandArgs {
-  initCommandArgs: string[] = []
-  installCommandArgs: string[] = []
+  initCommandArgs: string[]
+  installCommandArgs: string[]
+
+  constructor(args?: Partial<PMCommandArgs>) {
+    this.initCommandArgs = args?.initCommandArgs ?? []
+    this.installCommandArgs = args?.installCommandArgs ?? []
+  }
 }
 
 class ConfigFactory implements Required<Config> {
+  static readonly directory = '.benchmark'
+  static readonly pkgFileName = 'package.json'
+
   cwd = process.cwd()
   rounds = 3
-  prefix = 'benchmark'
   registry = 'https://registry.npmjs.org'
   monorepo = false
   cleanLegacy = false
-  pkgFileName = 'package.json'
   skipPMInstall = false
 }
 
@@ -35,7 +41,7 @@ export class Benchmark {
 
   // TODO 支持指定版本的探测
   use<T extends keyof PresetPMMap>(pm: T, command: PresetPMMap[T], commandArgs?: Partial<PMCommandArgs>) {
-    const shellPMCommandArgs = Object.assign(new PMCommandArgs(), commandArgs)
+    const shellPMCommandArgs = new PMCommandArgs(commandArgs)
 
     Logger.Tips(`# Stage-PreparePM`)
     Logger.Info(`## detect version:`, IO.streamToString(pm, `v${IO.detectPMVersion(pm)}`))
@@ -52,14 +58,14 @@ export class Benchmark {
     Logger.Wrap()
 
     this.#benchmarkConfig = Object.assign(new ConfigFactory(), config)
-    const { cwd, prefix, cleanLegacy } = this.#benchmarkConfig
+    const { cwd, cleanLegacy } = this.#benchmarkConfig
 
     Logger.Tips(`# Stage-PrepareWorkSpace`)
     Logger.Info(`## deploy workspace:`, cwd)
-    Logger.Info(`## deploy directory:`, prefix)
+    Logger.Info(`## deploy directory:`, ConfigFactory.directory)
 
-    cleanLegacy && IO.removeWorkSpace(cwd, prefix)
-    this.#workspace = IO.createWorkSpace(cwd, prefix)
+    cleanLegacy && IO.removeWorkSpace(cwd, ConfigFactory.directory)
+    this.#workspace = IO.createWorkSpace(cwd, ConfigFactory.directory)
 
     return { register: (installers: Installer[]) => this.#register(installers) }
   }
@@ -71,7 +77,7 @@ export class Benchmark {
     this.#installers = installers
 
     IO.spawnSync(this.#shellPM, ['init', ...this.#shellPMCommandArgs.initCommandArgs], { cwd: this.#workspace, stdio: 'inherit' })
-    Logger.Info(`## create pkgfile:`, join(this.#workspace, this.#benchmarkConfig.pkgFileName))
+    Logger.Info(`## create pkgfile:`, join(this.#workspace, ConfigFactory.pkgFileName))
 
     const normalized = this.#installers.map(({ pm, version }) => `${pm}@${version ?? 'latest'}`)
     const mergedCommandArgs = [this.#shellPMCommand, ...this.#shellPMCommandArgs.installCommandArgs, ...normalized]
@@ -87,14 +93,14 @@ export class Benchmark {
     Logger.Tips(`# Stage-BootstrapBenchmark`)
 
     // TODO 开启多线程
-    this.fixtures.forEach((fixture) => {
+    this.fixtures.forEach((fixture, i) => {
       const fixtureDir = join(this.#benchmarkConfig.cwd, fixture.dir)
-      const fixturePkgPath = join(fixtureDir, this.#benchmarkConfig.pkgFileName)
+      const fixturePkgPath = join(fixtureDir, ConfigFactory.pkgFileName)
       Logger.Info('## retrieved pkgfile:', fixturePkgPath)
 
       const results = this.#installers.map((installer) => {
-        const runDir = join(this.#workspace, fixture.dir, installer.pm)
-        const runPkgPath = join(runDir, this.#benchmarkConfig.pkgFileName)
+        const runDir = join(this.#workspace, `run-${installer.pm}-${i}`)
+        const runPkgPath = join(runDir, ConfigFactory.pkgFileName)
 
         mkdirSync(runDir, { recursive: true })
         copyFileSync(fixturePkgPath, runPkgPath)
@@ -102,8 +108,9 @@ export class Benchmark {
         return this.#runTask(runDir, installer)
       })
 
-      const outputHTMLDir = join(fixtureDir, 'benchmark-results.html')
-      const outputJSONDir = join(fixtureDir, 'benchmark-results.json')
+      const outputDir = join(this.#workspace, `run-results-${i}`)
+      const outputHTMLDir = join(outputDir, 'benchmark.html')
+      const outputJSONDir = join(outputDir, 'benchmark.json')
       writeFileSync(outputJSONDir, JSON.stringify(results, null, 2))
       writeFileSync(outputHTMLDir, createSVGTemplate(fixture.dir, results))
 

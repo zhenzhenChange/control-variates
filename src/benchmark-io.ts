@@ -1,8 +1,7 @@
-import { v4 } from 'uuid'
 import { decode } from 'iconv-lite'
 import { rimrafSync } from 'rimraf'
-import { env, execPath } from 'node:process'
 import { sync as spawnSync } from 'cross-spawn'
+import { env, execPath, platform } from 'node:process'
 import { delimiter, dirname, join } from 'node:path'
 import { existsSync, lstatSync, mkdirSync, readdirSync } from 'node:fs'
 
@@ -78,8 +77,19 @@ export class IO {
     return stream.join(' ').replace(/\s+/g, ' ').trim()
   }
 
+  /** @see https://github.com/sindresorhus/path-key */
+  static getPathKey() {
+    if (platform !== 'win32') return 'PATH'
+
+    const pathKey = Object.keys(env)
+      .reverse()
+      .find((key) => key.toUpperCase() === 'PATH')
+
+    return pathKey || 'Path'
+  }
+
   static createEnv(workspace: string) {
-    const pathKey = 'PATH'
+    const pathKey = this.getPathKey()
     const stdioEnv = Object.create(env) as NodeJS.ProcessEnv
 
     const installersPath = join(workspace, 'node_modules', '.bin')
@@ -105,10 +115,10 @@ export class IO {
     return commandArgs
   }
 
-  static createWorkSpace(cwd: string, prefix: string) {
+  static createWorkSpace(cwd: string, directory: string) {
     Logger.Info(`## generate workspace directory ...`)
 
-    const workspace = join(cwd, `${prefix}-${v4()}`)
+    const workspace = join(cwd, directory)
     mkdirSync(workspace)
 
     Logger.Info(`## workspace directory created: ${workspace}`)
@@ -116,9 +126,9 @@ export class IO {
     return workspace
   }
 
-  static removeWorkSpace(cwd: string, prefix: string) {
+  static removeWorkSpace(cwd: string, directory: string) {
     const cachedDir = readdirSync(cwd)
-      .filter((dir) => dir.includes(prefix))
+      .filter((dir) => dir === directory)
       .map((dir) => join(cwd, dir))
 
     if (!cachedDir.length) return

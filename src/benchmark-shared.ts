@@ -35,11 +35,6 @@ export interface Config {
    */
   rounds?: number
   /**
-   * @default benchmark
-   * @description 目录前缀
-   */
-  prefix?: string
-  /**
    * @default https://registry.npmjs.org
    * @description 镜像源
    */
@@ -54,11 +49,6 @@ export interface Config {
    * @description 是否清理遗留产物
    */
   cleanLegacy?: boolean
-  /**
-   * @default package.json
-   * @description 包描述文件名
-   */
-  pkgFileName?: string
   /**
    * @default false
    * @description 是否跳过包管理器的安装

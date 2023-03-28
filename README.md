@@ -11,14 +11,13 @@ pnpm benchmark
 
 ```text
 # Benchmark Results:
-## fixtures/xxx/benchmark-results.html
-## fixtures/xxx/benchmark-results.json
+## .benchmark/xxx/benchmark.html
+## .benchmark/xxx/benchmark.json
 ```
 
 ## Dependencies
 
 - `tsx`: Executing code in node using ESM and TS.
-- `uuid`: Generate random strings for directory creation.
 - `chalk`: Beautifying console output.
 - `rimraf`: For file deletion.
 - `typescript`: Written with TS.
