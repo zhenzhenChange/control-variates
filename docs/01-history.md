@@ -2,6 +2,8 @@
 
 > 本文及其后续由 GPT-3.5 协助创作。
 
+本文着重阐述在 Node.js 中跟依赖管理相关的发展过程，主要涉及`NPM/Yarn/Pnpm`三大包管理器。
+
 根据 NPM 的官方（[npm-cli](https://github.com/npm/cli#faq-on-branding)）介（pì）绍（yáo），`PM`的真正意义其实并不算是包管理器（Package Manager）的缩写，而是 pkg make inst，它是一个在不同平台上安装各种东西的 Bash 函数。
 
 Me：
