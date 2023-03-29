@@ -109,6 +109,8 @@ export class Benchmark {
       })
 
       const outputDir = join(this.#workspace, `run-results-${i}`)
+      mkdirSync(outputDir, { recursive: true })
+
       const outputHTMLDir = join(outputDir, 'benchmark.html')
       const outputJSONDir = join(outputDir, 'benchmark.json')
       writeFileSync(outputJSONDir, JSON.stringify(results, null, 2))
