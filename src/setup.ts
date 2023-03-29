@@ -5,7 +5,10 @@
 
 import { Benchmark } from './benchmark'
 
-new Benchmark([{ dir: './fixtures/example' }, { dir: './fixtures/playground' }])
+new Benchmark([
+  { dir: './fixtures/example', name: 'example' },
+  { dir: './fixtures/playground', name: 'playground' },
+])
   .use('pnpm', 'add')
   .config({ registry: 'https://registry.npm.taobao.org', cleanLegacy: true })
   .register([

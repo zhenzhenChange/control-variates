@@ -99,7 +99,7 @@ export class Benchmark {
       Logger.Info('## retrieved pkgfile:', fixturePkgPath)
 
       const results = this.#installers.map((installer) => {
-        const runDir = join(this.#workspace, `run-${installer.pm}-${i}`)
+        const runDir = join(this.#workspace, `run-${installer.pm}-${fixture.name ?? i}`)
         const runPkgPath = join(runDir, ConfigFactory.pkgFileName)
 
         mkdirSync(runDir, { recursive: true })
@@ -108,13 +108,13 @@ export class Benchmark {
         return this.#runTask(runDir, installer)
       })
 
-      const outputDir = join(this.#workspace, `run-results-${i}`)
+      const outputDir = join(this.#workspace, `run-results-${fixture.name ?? i}`)
       mkdirSync(outputDir, { recursive: true })
 
       const outputHTMLDir = join(outputDir, 'benchmark.html')
       const outputJSONDir = join(outputDir, 'benchmark.json')
       writeFileSync(outputJSONDir, JSON.stringify(results, null, 2))
-      writeFileSync(outputHTMLDir, createSVGTemplate(fixture.dir, results))
+      writeFileSync(outputHTMLDir, createSVGTemplate(`${fixture.name ?? fixture.dir}-${this.#benchmarkConfig.registry}`, results))
 
       Logger.Finally(`## ${fixture.dir} benchmark done.`)
       Logger.Finally(`## output JSON directory: ${outputJSONDir}`)

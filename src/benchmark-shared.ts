@@ -59,6 +59,8 @@ export interface Config {
 export interface Fixture {
   /** @description 资产路径 */
   dir: string
+  /** @description 资产命名 */
+  name?: string
 }
 
 export interface Installer {

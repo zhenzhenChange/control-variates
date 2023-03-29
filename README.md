@@ -11,8 +11,8 @@ pnpm benchmark
 
 ```text
 # Benchmark Results:
-## node_benchmarks/run-result-xxx/benchmark.html
-## node_benchmarks/run-result-xxx/benchmark.json
+## node_benchmarks/run-result-[fixture.name || fixture.index]/benchmark.html
+## node_benchmarks/run-result-[fixture.name || fixture.index]/benchmark.json
 ```
 
 ## Dependencies
