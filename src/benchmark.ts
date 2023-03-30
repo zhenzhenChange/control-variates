@@ -22,7 +22,7 @@ class ConfigFactory implements Required<Config> {
 
   cwd = process.cwd()
   rounds = 3
-  registry = 'https://registry.npmjs.org'
+  registry = 'https://registry.npmjs.org/'
   monorepo = false
   cleanLegacy = false
   skipPMInstall = false
