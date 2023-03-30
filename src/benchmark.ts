@@ -10,7 +10,6 @@ import {
   BenchmarkResult,
   Fixture,
   Installer,
-  KD,
   PMCommandArgs,
   PresetPMLockFileName,
   PresetPMMap,
@@ -91,7 +90,12 @@ export class Benchmark {
         mkdirSync(runDir, { recursive: true })
         copyFileSync(fixturePkgPath, runPkgPath)
 
-        if (installer.pm === 'yarn') writeFileSync(join(runDir, '.yarnrc'), 'registry "https://registry.npmjs.org/"')
+        const { pairs, filename, delimiter } = installer.runtimeConfig
+
+        const registry = `registry${delimiter}${this.#benchmarkConfig.registry}`
+        const normalizedPairs = [registry, ...pairs.map(({ key, val }) => `${key}${delimiter}${val}`)]
+
+        writeFileSync(join(runDir, filename), normalizedPairs.join('\r\n'))
 
         return this.#runTask(runDir, installer)
       })
@@ -112,18 +116,14 @@ export class Benchmark {
 
   #runTask(runDir: string, installer: Installer): BenchmarkResult {
     const runEnv = IO.createEnv(this.#workspace)
-    const { pm, lockFileName, commandVariables = {} } = installer
+    const { pm, lockFileName } = installer
 
     const version = IO.detectPMVersion(pm, { cwd: runDir, env: runEnv })
     const parsedPMVersion = IO.streamToString(pm, `v${version}`)
 
     Logger.Wrap()
     Logger.Info(`## retrieved version:`, parsedPMVersion)
-
-    const installCommandArgs = ['install', ...IO.normalizeArgs(this.#benchmarkConfig.registry, commandVariables)]
-    Logger.Info(`## retrieved command:`, `${pm} ${installCommandArgs.join(' ')}`.trim())
     Logger.Info('## retrieved control:', '🤍 No | 🧡 Has')
-    IO.spawnSync(pm, ['config', 'get', 'registry'], { cwd: runDir, env: runEnv, stdio: 'inherit' })
     Logger.Wrap()
 
     /* ====================================================== benchmark ====================================================== */
@@ -136,7 +136,7 @@ export class Benchmark {
 
       Logger.Important(`## 👇 Control variates: ${mergedVariatesHeart}`)
 
-      !cache && this.#cleanCache(runDir, commandVariables.productDirs ?? [])
+      !cache && installer.cacheCleaner(pm)
       !lockfile && this.#cleanLockFile(runDir, lockFileName)
       !node_modules && this.#cleanNodeModules(runDir)
 
@@ -147,7 +147,7 @@ export class Benchmark {
       Logger.Wrap()
 
       const TimeS = Date.now()
-      IO.spawnSync(pm, installCommandArgs, { cwd: runDir, stdio: 'inherit' })
+      IO.spawnSync(pm, ['install'], { cwd: runDir, stdio: 'inherit' })
       const TimeE = Date.now()
 
       Logger.Wrap()
@@ -183,20 +183,13 @@ export class Benchmark {
     }
   }
 
-  #cleanCache(runDir: string, productDirs: KD[]) {
-    productDirs.forEach((pd) => {
-      const mergedDir = join(runDir, pd.dir)
-      IO.cleanDir(mergedDir, () => Logger.Info(`## clean cache:`, mergedDir))
-    })
-  }
-
   #cleanLockFile(runDir: string, lockFileName: PresetPMLockFileName) {
     const mergedDir = join(runDir, lockFileName)
     IO.cleanDir(mergedDir, () => Logger.Info(`## clean lockfile:`, mergedDir))
   }
 
   #cleanNodeModules(runDir: string) {
-    const mergedDir = join(runDir, 'node_modules')
+    const mergedDir = join(runDir, BenchmarkConfig.NODE_MODULES)
     IO.cleanDir(mergedDir, () => Logger.Info(`## clean node_modules:`, mergedDir))
   }
 }

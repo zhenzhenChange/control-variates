@@ -1,8 +1,12 @@
 /**
  * @see https://github.com/pnpm/pnpm.github.io/tree/main/benchmarks
- * @description 由于 Pnpm 的跑分代码扩展性太弱，故重写（部分逻辑参考 Pnpm Benchmarks 的实现）。
+ * @see https://github.com/yarnpkg/berry/blob/master/scripts/bench-run.sh
  */
 
+import { rimrafSync } from 'rimraf'
+import { join, resolve } from 'node:path'
+
+import { IO } from './benchmark-io'
 import { Benchmark } from './benchmark'
 
 new Benchmark([
@@ -15,33 +19,49 @@ new Benchmark([
     {
       pm: 'npm',
       lockFileName: 'package-lock.json',
-      commandVariables: {
-        args: ['--no-fund', '--no-audit'],
-        ignores: {
-          scripts: '--ignore-scripts',
-          strictPeerDependencies: '--legacy-peer-deps',
-        },
-        productDirs: [{ key: '--cache', dir: '.npm-cache' }],
+      cacheCleaner: (pm) => {
+        IO.spawnSync(pm, ['config', 'get', 'cache'], { stdio: 'inherit' })
+        IO.spawnSync(pm, ['cache', 'clean', '--force'], { stdio: 'inherit' })
+      },
+      runtimeConfig: {
+        pairs: [
+          { key: 'ignore-scripts', val: true },
+          { key: 'legacy-peer-deps', val: true },
+        ],
+        filename: '.npmrc',
+        delimiter: ' = ',
       },
     },
     {
       pm: 'yarn',
       lockFileName: 'yarn.lock',
-      commandVariables: {
-        args: ['--no-fund', '--no-audit'],
-        ignores: { scripts: '--ignore-scripts' },
-        productDirs: [{ key: '--cache-folder', dir: '.yarn-cache' }],
+      cacheCleaner: (pm) => {
+        IO.spawnSync(pm, ['cache', 'dir'], { stdio: 'inherit' })
+        IO.spawnSync(pm, ['cache', 'clean'], { stdio: 'inherit' })
+      },
+      runtimeConfig: {
+        pairs: [{ key: 'ignore-scripts', val: true }],
+        filename: '.yarnrc',
+        delimiter: ': ',
       },
     },
     {
       pm: 'pnpm',
       lockFileName: 'pnpm-lock.yaml',
-      commandVariables: {
-        ignores: { scripts: '--ignore-scripts' },
-        productDirs: [
-          { key: '--cache-dir', dir: '.pnpm-cache' },
-          { key: '--store-dir', dir: '.pnpm-store' },
+      cacheCleaner: (pm) => {
+        const storeDir = IO.spawnSync(pm, ['store', 'path'], { encoding: 'utf-8' })
+        rimrafSync(resolve(storeDir.stdout.trim()))
+
+        const cacheDir = join(process.env['LOCALAPPDATA']!, 'pnpm-cache')
+        rimrafSync(cacheDir)
+      },
+      runtimeConfig: {
+        pairs: [
+          { key: 'ignore-scripts', val: true },
+          { key: 'strict-peer-dependencies', val: false },
         ],
+        filename: '.npmrc',
+        delimiter: ' = ',
       },
     },
   ])

@@ -1,19 +1,3 @@
-export interface KD {
-  /** @description 参数键 */
-  key: string
-  /** @description 目录值 */
-  dir: string
-}
-
-interface Ignores {
-  /** @description 忽略脚本执行的参数 */
-  scripts?: string
-  /** @description 忽略引擎检查的参数 */
-  engines?: string
-  /** @description 忽略对等依赖严格检查的参数 */
-  strictPeerDependencies?: string | string[]
-}
-
 // NOTE：提供 T 字面量类型支持的同时，也支持其它字符串字面量值
 type LiteralUnion<T extends string> = T | (string & Object)
 
@@ -42,35 +26,9 @@ export class PMCommandArgs {
   }
 }
 
-export interface Fixture {
-  /** @description 资产路径 */
-  dir: string
-  /** @description 资产命名 @default fixture.index */
-  name?: string
-}
-
-export interface Installer {
-  /** @description 包管理器 */
-  pm: PresetPM
-  /** @description 版本 @default latest */
-  version?: LiteralUnion<'latest'>
-  /** @description 锁依赖版本文件名 */
-  lockFileName: PresetPMLockFileName
-  /** @description 命令参数 */
-  commandVariables?: InstallerVariables
-}
-
-export interface InstallerVariables {
-  /** @description 专属于该包管理器的额外参数 */
-  args?: string[]
-  /** @description 忽略参数 */
-  ignores?: Ignores
-  /** @description 各类构建之后的存储/缓存目录 */
-  productDirs?: KD[]
-}
-
 export class BenchmarkConfig {
   static readonly DIRECTORY = 'pm_benchmarks'
+  static readonly NODE_MODULES = 'node_modules'
   static readonly PKG_FILE_NAME = 'package.json'
 
   /**
@@ -119,6 +77,26 @@ export class BenchmarkConfig {
   }
 }
 
+export interface Fixture {
+  /** @description 资产路径 */
+  dir: string
+  /** @description 资产命名 @default fixture.index */
+  name?: string
+}
+
+export interface Installer {
+  /** @description 包管理器 */
+  pm: PresetPM
+  /** @description 版本 @default latest */
+  version?: LiteralUnion<'latest'>
+  /** @description 锁文件名 */
+  lockFileName: PresetPMLockFileName
+  /** @description 缓存清理器 */
+  cacheCleaner: (pm: PresetPM) => void
+  /** @description 运行时配置 */
+  runtimeConfig: InstallerRuntimeConfig
+}
+
 export interface BenchmarkResult {
   /** @description 包管理器 */
   pm: PresetPM
@@ -135,4 +113,17 @@ export interface BenchmarkRecord {
   size: number
   /** @description 控制变量 */
   variates: string
+}
+
+interface KV {
+  /** @description 键 */
+  key: string
+  /** @description 值 */
+  val: string | number | boolean
+}
+
+interface InstallerRuntimeConfig {
+  pairs: KV[]
+  filename: PresetPMRcFileName
+  delimiter: LiteralUnion<': ' | ' = '>
 }

@@ -6,7 +6,7 @@ import { delimiter, dirname, join } from 'node:path'
 import { existsSync, lstatSync, mkdirSync, readdirSync } from 'node:fs'
 
 import { Logger } from './benchmark-logger'
-import { InstallerVariables, PresetPM, PresetPMVersionArgName } from './benchmark-shared'
+import { PresetPM, PresetPMVersionArgName } from './benchmark-shared'
 
 interface DetectOptions {
   env?: NodeJS.ProcessEnv
@@ -28,7 +28,6 @@ export class IO {
     return decode(strToBuffer, this.ENCODING_ICONV).replace(/\r\n/g, '').trim()
   }
 
-  /** @description 探测包管理器的版本 */
   static detectPMVersion(pm: PresetPM, options: DetectOptions = {}) {
     const { cwd, env, command = '--version' } = options
     const { error, stderr, stdout } = spawnSync(pm, [command], { cwd, env, encoding: this.ENCODING_STDIO })
@@ -100,18 +99,6 @@ export class IO {
 
   static createHeart(bool: boolean) {
     return bool ? '🧡' : '🤍'
-  }
-
-  static normalizeArgs(registry: string, commandVariables: InstallerVariables) {
-    const commandArgs: string[] = []
-    const { args = [], ignores = {}, productDirs = [] } = commandVariables
-
-    commandArgs.push(`--registry=${registry}`)
-    commandArgs.push(...args)
-    commandArgs.push(...Object.values(ignores))
-    productDirs.forEach((pd) => commandArgs.push(`${pd.key}=${pd.dir}`))
-
-    return commandArgs
   }
 
   static createWorkSpace(cwd: string, directory: string) {
