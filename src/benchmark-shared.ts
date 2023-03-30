@@ -24,37 +24,22 @@ export type PresetPMRcFileName = LiteralUnion<'.npmrc' | '.yarnrc'>
 export type PresetPMLockFileName = LiteralUnion<'yarn.lock' | 'pnpm-lock.yaml' | 'package-lock.json'>
 export type PresetPMVersionArgName = LiteralUnion<'--version'>
 
-export interface Config {
+export class PMCommandArgs {
   /**
-   * @default process.cwd()
-   * @description 当前工作目录
+   * @default []
+   * @description 初始化命令的额外参数
    */
-  cwd?: string
+  initCommandArgs: string[]
   /**
-   * @default 3
-   * @description 测试轮数
+   * @default []
+   * @description 安装命令的额外参数
    */
-  rounds?: number
-  /**
-   * @default https://registry.npmjs.org/
-   * @description 镜像源
-   */
-  registry?: PresetPMRegistry
-  /**
-   * @default false
-   * @description 是否为多包仓库
-   */
-  monorepo?: boolean
-  /**
-   * @default false
-   * @description 是否清理遗留产物
-   */
-  cleanLegacy?: boolean
-  /**
-   * @default false
-   * @description 是否跳过包管理器的安装（Debug Only）
-   */
-  skipPMInstall?: boolean
+  installCommandArgs: string[]
+
+  constructor(args?: Partial<PMCommandArgs>) {
+    this.initCommandArgs = args?.initCommandArgs ?? []
+    this.installCommandArgs = args?.installCommandArgs ?? []
+  }
 }
 
 export interface Fixture {
@@ -82,6 +67,56 @@ export interface InstallerVariables {
   ignores?: Ignores
   /** @description 各类构建之后的存储/缓存目录 */
   productDirs?: KD[]
+}
+
+export class BenchmarkConfig {
+  static readonly DIRECTORY = 'pm_benchmarks'
+  static readonly PKG_FILE_NAME = 'package.json'
+
+  /**
+   * @default process.cwd()
+   * @description 当前工作目录
+   */
+  cwd: string
+
+  /**
+   * @default 3
+   * @description 测试轮数
+   */
+  rounds: number
+
+  /**
+   * @default https://registry.npmjs.org/
+   * @description 镜像源
+   */
+  registry: PresetPMRegistry
+
+  /**
+   * @default false
+   * @description 是否为多包仓库
+   */
+  monorepo: boolean
+
+  /**
+   * @default false
+   * @description 是否清理遗留产物
+   */
+  cleanLegacy: boolean
+
+  /**
+   * @default false
+   * @description 是否跳过包管理器的安装（Debug Only）
+   */
+  skipPMInstall: boolean
+
+  constructor(config?: Partial<BenchmarkConfig>) {
+    this.cwd = config?.cwd ?? process.cwd()
+    this.rounds = config?.rounds ?? 3
+    this.registry = config?.registry ?? 'https://registry.npmjs.org/'
+    this.monorepo = config?.monorepo ?? false
+    this.cleanLegacy = config?.cleanLegacy ?? false
+    this.skipPMInstall = config?.skipPMInstall ?? false
+  }
 }
 
 export interface BenchmarkResult {

@@ -4,29 +4,17 @@ import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs'
 import { IO } from './benchmark-io'
 import { Logger } from './benchmark-logger'
 import { createSVGTemplate } from './benchmark-svg'
-import { BenchmarkRecord, BenchmarkResult, Config, Fixture, Installer, KD, PresetPMLockFileName, PresetPMMap } from './benchmark-shared'
-
-class PMCommandArgs {
-  initCommandArgs: string[]
-  installCommandArgs: string[]
-
-  constructor(args?: Partial<PMCommandArgs>) {
-    this.initCommandArgs = args?.initCommandArgs ?? []
-    this.installCommandArgs = args?.installCommandArgs ?? []
-  }
-}
-
-class ConfigFactory implements Required<Config> {
-  static readonly directory = 'pm_benchmarks'
-  static readonly pkgFileName = 'package.json'
-
-  cwd = process.cwd()
-  rounds = 3
-  registry = 'https://registry.npmjs.org/'
-  monorepo = false
-  cleanLegacy = false
-  skipPMInstall = false
-}
+import {
+  BenchmarkConfig,
+  BenchmarkRecord,
+  BenchmarkResult,
+  Fixture,
+  Installer,
+  KD,
+  PMCommandArgs,
+  PresetPMLockFileName,
+  PresetPMMap,
+} from './benchmark-shared'
 
 export class Benchmark {
   #shellPM: string
@@ -35,11 +23,10 @@ export class Benchmark {
 
   #workspace: string
   #installers: Installer[]
-  #benchmarkConfig: ConfigFactory
+  #benchmarkConfig: BenchmarkConfig
 
   constructor(private fixtures: Fixture[]) {}
 
-  // TODO 支持指定版本的探测
   use<T extends keyof PresetPMMap>(pm: T, command: PresetPMMap[T], commandArgs?: Partial<PMCommandArgs>) {
     const shellPMCommandArgs = new PMCommandArgs(commandArgs)
 
@@ -51,21 +38,20 @@ export class Benchmark {
     this.#shellPMCommand = command
     this.#shellPMCommandArgs = shellPMCommandArgs
 
-    return { config: (config?: Config) => this.#config(config) }
+    return { config: (config?: Partial<BenchmarkConfig>) => this.#config(config) }
   }
 
-  #config(config?: Config) {
+  #config(config?: Partial<BenchmarkConfig>) {
     Logger.Wrap()
 
-    this.#benchmarkConfig = Object.assign(new ConfigFactory(), config)
-    const { cwd, cleanLegacy } = this.#benchmarkConfig
+    const { cwd, cleanLegacy } = (this.#benchmarkConfig = new BenchmarkConfig(config))
 
     Logger.Tips(`# Stage-PrepareWorkSpace`)
     Logger.Info(`## deploy workspace:`, cwd)
-    Logger.Info(`## deploy directory:`, ConfigFactory.directory)
+    Logger.Info(`## deploy directory:`, BenchmarkConfig.DIRECTORY)
 
-    cleanLegacy && IO.removeWorkSpace(cwd, ConfigFactory.directory)
-    this.#workspace = IO.createWorkSpace(cwd, ConfigFactory.directory)
+    cleanLegacy && IO.removeWorkSpace(cwd, BenchmarkConfig.DIRECTORY)
+    this.#workspace = IO.createWorkSpace(cwd, BenchmarkConfig.DIRECTORY)
 
     return { register: (installers: Installer[]) => this.#register(installers) }
   }
@@ -76,8 +62,8 @@ export class Benchmark {
 
     this.#installers = installers
 
-    IO.spawnSync(this.#shellPM, ['init', ...this.#shellPMCommandArgs.initCommandArgs], { cwd: this.#workspace, stdio: 'inherit' })
-    Logger.Info(`## create pkgfile:`, join(this.#workspace, ConfigFactory.pkgFileName))
+    IO.spawnSync(this.#shellPM, ['init', ...this.#shellPMCommandArgs.initCommandArgs], { cwd: this.#workspace })
+    Logger.Info(`## create pkgfile:`, join(this.#workspace, BenchmarkConfig.PKG_FILE_NAME))
 
     const normalized = this.#installers.map(({ pm, version }) => `${pm}@${version ?? 'latest'}`)
     const mergedCommandArgs = [this.#shellPMCommand, ...this.#shellPMCommandArgs.installCommandArgs, ...normalized]
@@ -95,12 +81,12 @@ export class Benchmark {
     // TODO 开启多线程
     this.fixtures.forEach((fixture, i) => {
       const fixtureDir = join(this.#benchmarkConfig.cwd, fixture.dir)
-      const fixturePkgPath = join(fixtureDir, ConfigFactory.pkgFileName)
+      const fixturePkgPath = join(fixtureDir, BenchmarkConfig.PKG_FILE_NAME)
       Logger.Info('## retrieved pkgfile:', fixturePkgPath)
 
       const results = this.#installers.map((installer) => {
         const runDir = join(this.#workspace, `run-${installer.pm}-${fixture.name ?? i}`)
-        const runPkgPath = join(runDir, ConfigFactory.pkgFileName)
+        const runPkgPath = join(runDir, BenchmarkConfig.PKG_FILE_NAME)
 
         mkdirSync(runDir, { recursive: true })
         copyFileSync(fixturePkgPath, runPkgPath)
