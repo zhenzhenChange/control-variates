@@ -17,7 +17,7 @@ class PMCommandArgs {
 }
 
 class ConfigFactory implements Required<Config> {
-  static readonly directory = 'node_benchmarks'
+  static readonly directory = 'pm_benchmarks'
   static readonly pkgFileName = 'package.json'
 
   cwd = process.cwd()
