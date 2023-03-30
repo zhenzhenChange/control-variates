@@ -4,7 +4,7 @@ import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs'
 import { IO } from './benchmark-io'
 import { Logger } from './benchmark-logger'
 import { createSVGTemplate } from './benchmark-svg'
-import { BenchmarkRecord, BenchmarkResult, Config, Fixture, Installer, PresetPMLockFileName, PresetPMMap } from './benchmark-shared'
+import { BenchmarkRecord, BenchmarkResult, Config, Fixture, Installer, KD, PresetPMLockFileName, PresetPMMap } from './benchmark-shared'
 
 class PMCommandArgs {
   initCommandArgs: string[]
@@ -119,13 +119,12 @@ export class Benchmark {
       Logger.Finally(`## ${fixture.dir} benchmark done.`)
       Logger.Finally(`## output JSON directory: ${outputJSONDir}`)
       Logger.Finally(`## output HTML directory: ${outputHTMLDir}`)
-      Logger.Wrap()
     })
   }
 
   #runTask(runDir: string, installer: Installer): BenchmarkResult {
     const runEnv = IO.createEnv(this.#workspace)
-    const { pm, commandVariables } = installer
+    const { pm, lockFileName, commandVariables = {} } = installer
 
     const version = IO.detectPMVersion(pm, { cwd: runDir, env: runEnv })
     const parsedPMVersion = IO.streamToString(pm, `v${version}`)
@@ -148,8 +147,8 @@ export class Benchmark {
 
       Logger.Important(`## 👇 Control variates: ${mergedVariatesHeart}`)
 
-      !cache && this.#cleanCache(runDir, commandVariables.cache.dir, commandVariables.store?.dir)
-      !lockfile && this.#cleanLockFile(runDir, commandVariables.lockFileName)
+      !cache && this.#cleanCache(runDir, commandVariables.productDirs ?? [])
+      !lockfile && this.#cleanLockFile(runDir, lockFileName)
       !node_modules && this.#cleanNodeModules(runDir)
 
       return mergedVariatesHeart
@@ -195,14 +194,11 @@ export class Benchmark {
     }
   }
 
-  #cleanCache(runDir: string, cacheDir: string, storeDir?: string) {
-    const mergedCacheDir = join(runDir, cacheDir)
-    IO.cleanDir(mergedCacheDir, () => Logger.Info(`## clean cache:`, mergedCacheDir))
-
-    // Soft and hard links exclusive
-    if (!storeDir) return
-    const mergedStoreDir = join(runDir, storeDir)
-    IO.cleanDir(mergedStoreDir, () => Logger.Info(`## clean store:`, mergedStoreDir))
+  #cleanCache(runDir: string, productDirs: KD[]) {
+    productDirs.forEach((pd) => {
+      const mergedDir = join(runDir, pd.dir)
+      IO.cleanDir(mergedDir, () => Logger.Info(`## clean cache:`, mergedDir))
+    })
   }
 
   #cleanLockFile(runDir: string, lockFileName: PresetPMLockFileName) {

@@ -10,56 +10,47 @@ new Benchmark([
   { dir: './fixtures/playground', name: 'playground' },
 ])
   .use('pnpm', 'add')
-  .config({ registry: 'https://registry.npm.taobao.org', cleanLegacy: true })
+  .config({ cleanLegacy: true })
   .register([
     {
       pm: 'npm',
+      lockFileName: 'package-lock.json',
       commandVariables: {
         args: ['--no-fund', '--no-audit'],
-        cache: {
-          key: '--cache',
-          dir: '.npm-cache',
-        },
         ignores: {
           scripts: '--ignore-scripts',
           engines: '--ignore-engines',
           strictPeerDependencies: '--legacy-peer-deps',
         },
-        lockFileName: 'package-lock.json',
+        productDirs: [{ key: '--cache', dir: '.npm-cache' }],
       },
     },
     {
       pm: 'yarn',
+      lockFileName: 'yarn.lock',
       commandVariables: {
         args: ['--no-fund', '--no-audit'],
-        cache: {
-          key: '--cache-folder',
-          dir: '.yarn-cache',
-        },
         ignores: {
           scripts: '--ignore-scripts',
           engines: '--ignore-engines',
           strictPeerDependencies: '--ignore-optional', // Can you ignore peer deps ?
         },
-        lockFileName: 'yarn.lock',
+        productDirs: [{ key: '--cache-folder', dir: '.yarn-cache' }],
       },
     },
     {
       pm: 'pnpm',
+      lockFileName: 'pnpm-lock.yaml',
       commandVariables: {
-        cache: {
-          key: '--cache-dir',
-          dir: '.pnpm-cache',
-        },
-        store: {
-          key: '--store-dir',
-          dir: '.pnpm-store',
-        },
         ignores: {
           scripts: '--ignore-scripts',
           strictPeerDependencies: '--no-strict-peer-dependencies',
         },
-        lockFileName: 'pnpm-lock.yaml',
+        productDirs: [
+          { key: '--cache-dir', dir: '.pnpm-cache' },
+          { key: '--store-dir', dir: '.pnpm-store' },
+          { key: '--virtual-store-dir', dir: '.pnpm-virtual-store' },
+        ],
       },
     },
   ])

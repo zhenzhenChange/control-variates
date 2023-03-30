@@ -1,4 +1,4 @@
-interface KD {
+export interface KD {
   /** @description 参数键 */
   key: string
   /** @description 目录值 */
@@ -7,11 +7,11 @@ interface KD {
 
 interface Ignores {
   /** @description 忽略脚本执行的参数 */
-  scripts: string
+  scripts?: string
   /** @description 忽略引擎检查的参数 */
   engines?: string
-  /** @description 忽略 PeerDeps 检查的参数 */
-  strictPeerDependencies: string | string[]
+  /** @description 忽略对等依赖严格检查的参数 */
+  strictPeerDependencies?: string | string[]
 }
 
 // NOTE：提供 T 字面量类型支持的同时，也支持其它字符串字面量值
@@ -25,7 +25,7 @@ export type PresetPMVersionArgName = LiteralUnion<'--version'>
 
 export interface Config {
   /**
-   * @default process.cwd
+   * @default process.cwd()
    * @description 当前工作目录
    */
   cwd?: string
@@ -59,38 +59,36 @@ export interface Config {
 export interface Fixture {
   /** @description 资产路径 */
   dir: string
-  /** @description 资产命名 */
+  /** @description 资产命名 @default fixture.index */
   name?: string
 }
 
 export interface Installer {
   /** @description 包管理器 */
   pm: PresetPM
-  /**
-   * @default latest
-   * @description 版本
-   */
+  /** @description 版本 @default latest */
   version?: LiteralUnion<'latest'>
+  /** @description 锁依赖版本文件名 */
+  lockFileName: PresetPMLockFileName
   /** @description 命令参数 */
-  commandVariables: InstallerVariables
+  commandVariables?: InstallerVariables
 }
 
 export interface InstallerVariables {
   /** @description 专属于该包管理器的额外参数 */
   args?: string[]
-  /** @description 缓存目录 */
-  cache: KD
-  /** @description 存储目录 */
-  store?: KD
   /** @description 忽略参数 */
-  ignores: Ignores
-  /** @description 锁依赖版本文件名 */
-  lockFileName: PresetPMLockFileName
+  ignores?: Ignores
+  /** @description 各类构建之后的存储/缓存目录 */
+  productDirs?: KD[]
 }
 
 export interface BenchmarkResult {
+  /** @description 包管理器 */
   pm: PresetPM
+  /** @description 安装版本 */
   version: string
+  /** @description 结果记录 */
   records: BenchmarkRecord[]
 }
 

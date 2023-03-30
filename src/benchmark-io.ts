@@ -104,13 +104,12 @@ export class IO {
 
   static normalizeArgs(registry: string, commandVariables: InstallerVariables) {
     const commandArgs: string[] = []
-    const { args = [], cache, store, ignores } = commandVariables
+    const { args = [], ignores = {}, productDirs = [] } = commandVariables
 
     commandArgs.push(`--registry=${registry}`)
     commandArgs.push(...args)
     commandArgs.push(...Object.values(ignores))
-    commandArgs.push(`${cache.key}=${cache.dir}`)
-    store && commandArgs.push(`${store.key}=${store.dir}`)
+    productDirs.forEach((pd) => commandArgs.push(`${pd.key}=${pd.dir}`))
 
     return commandArgs
   }
