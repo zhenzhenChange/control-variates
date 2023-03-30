@@ -19,7 +19,6 @@ new Benchmark([
         args: ['--no-fund', '--no-audit'],
         ignores: {
           scripts: '--ignore-scripts',
-          engines: '--ignore-engines',
           strictPeerDependencies: '--legacy-peer-deps',
         },
         productDirs: [{ key: '--cache', dir: '.npm-cache' }],
@@ -30,11 +29,7 @@ new Benchmark([
       lockFileName: 'yarn.lock',
       commandVariables: {
         args: ['--no-fund', '--no-audit'],
-        ignores: {
-          scripts: '--ignore-scripts',
-          engines: '--ignore-engines',
-          strictPeerDependencies: '--ignore-optional', // Can you ignore peer deps ?
-        },
+        ignores: { scripts: '--ignore-scripts' },
         productDirs: [{ key: '--cache-folder', dir: '.yarn-cache' }],
       },
     },
@@ -42,14 +37,10 @@ new Benchmark([
       pm: 'pnpm',
       lockFileName: 'pnpm-lock.yaml',
       commandVariables: {
-        ignores: {
-          scripts: '--ignore-scripts',
-          strictPeerDependencies: '--no-strict-peer-dependencies',
-        },
+        ignores: { scripts: '--ignore-scripts' },
         productDirs: [
           { key: '--cache-dir', dir: '.pnpm-cache' },
           { key: '--store-dir', dir: '.pnpm-store' },
-          { key: '--virtual-store-dir', dir: '.pnpm-virtual-store' },
         ],
       },
     },

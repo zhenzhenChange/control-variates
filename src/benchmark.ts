@@ -105,6 +105,8 @@ export class Benchmark {
         mkdirSync(runDir, { recursive: true })
         copyFileSync(fixturePkgPath, runPkgPath)
 
+        if (installer.pm === 'yarn') writeFileSync(join(runDir, '.yarnrc'), 'registry "https://registry.npmjs.org/"')
+
         return this.#runTask(runDir, installer)
       })
 
@@ -135,6 +137,7 @@ export class Benchmark {
     const installCommandArgs = ['install', ...IO.normalizeArgs(this.#benchmarkConfig.registry, commandVariables)]
     Logger.Info(`## retrieved command:`, `${pm} ${installCommandArgs.join(' ')}`.trim())
     Logger.Info('## retrieved control:', '🤍 No | 🧡 Has')
+    IO.spawnSync(pm, ['config', 'get', 'registry'], { cwd: runDir, env: runEnv, stdio: 'inherit' })
     Logger.Wrap()
 
     /* ====================================================== benchmark ====================================================== */

@@ -20,6 +20,7 @@ type LiteralUnion<T extends string> = T | (string & Object)
 export type PresetPM = LiteralUnion<'npm' | 'yarn' | 'pnpm'>
 export type PresetPMMap = Record<PresetPM, 'add'>
 export type PresetPMRegistry = LiteralUnion<'https://registry.npmjs.org/' | 'https://registry.npm.taobao.org/'>
+export type PresetPMRcFileName = LiteralUnion<'.npmrc' | '.yarnrc'>
 export type PresetPMLockFileName = LiteralUnion<'yarn.lock' | 'pnpm-lock.yaml' | 'package-lock.json'>
 export type PresetPMVersionArgName = LiteralUnion<'--version'>
 
@@ -35,7 +36,7 @@ export interface Config {
    */
   rounds?: number
   /**
-   * @default https://registry.npmjs.org
+   * @default https://registry.npmjs.org/
    * @description 镜像源
    */
   registry?: PresetPMRegistry
@@ -51,7 +52,7 @@ export interface Config {
   cleanLegacy?: boolean
   /**
    * @default false
-   * @description 是否跳过包管理器的安装
+   * @description 是否跳过包管理器的安装（Debug Only）
    */
   skipPMInstall?: boolean
 }

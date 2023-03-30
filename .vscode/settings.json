@@ -1,11 +1,9 @@
 {
   // prettier-ignore
   "cSpell.words": [
-    "Cnpm",
-    "dcat",
+    "npmrc",
     "echarts",
-    "pkgfile",
-    "Tnpm"
+    "pkgfile"
   ],
   "prettier.printWidth": 140
 }
