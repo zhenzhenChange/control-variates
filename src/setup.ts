@@ -60,7 +60,7 @@ new Benchmark([
         Logger.Info('## clean store:', storeDir)
         rimrafSync(storeDir)
 
-        const cacheDir = join(process.env['LOCALAPPDATA']!, 'pnpm-cache')
+        const cacheDir = IO.getPnpmCachePath()
         Logger.Info('## clean cache:', cacheDir)
         rimrafSync(cacheDir)
       },

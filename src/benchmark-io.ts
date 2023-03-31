@@ -7,6 +7,7 @@ import { existsSync, lstatSync, mkdirSync, readdirSync } from 'node:fs'
 
 import { Logger } from './benchmark-logger'
 import { PresetPM, PresetPMVersionArgName } from './benchmark-shared'
+import { homedir } from 'node:os'
 
 interface DetectOptions {
   env?: NodeJS.ProcessEnv
@@ -93,6 +94,26 @@ export class IO {
       .find((key) => key.toUpperCase() === 'PATH')
 
     return pathKey || 'Path'
+  }
+
+  /** @see https://pnpm.io/npmrc#cache-dir */
+  static getPnpmCachePath() {
+    const homeDir = homedir()
+
+    switch (platform) {
+      case 'linux':
+        return join(homeDir, '.cache', 'pnpm')
+
+      case 'win32':
+        return join(homeDir, 'AppData/Local', 'pnpm-cache')
+
+      // MacOS
+      case 'darwin':
+        return join(homeDir, 'Library/Caches', 'pnpm')
+
+      default:
+        throw new Error(`Unknown OS: ${platform}`)
+    }
   }
 
   static createEnv(workspace: string) {
