@@ -107,6 +107,7 @@ export class Benchmark {
       Logger.Finally(`## ${fixture.dir} benchmark done.`)
       Logger.Finally(`## output JSON directory: ${outputJSONDir}`)
       Logger.Finally(`## output HTML directory: ${outputHTMLDir}`)
+      Logger.Wrap()
     })
   }
 

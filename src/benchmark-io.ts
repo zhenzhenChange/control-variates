@@ -1,4 +1,5 @@
 import { decode } from 'iconv-lite'
+import { homedir } from 'node:os'
 import { rimrafSync } from 'rimraf'
 import { sync as spawnSync } from 'cross-spawn'
 import { env, execPath, platform } from 'node:process'
@@ -7,7 +8,6 @@ import { existsSync, lstatSync, mkdirSync, readdirSync } from 'node:fs'
 
 import { Logger } from './benchmark-logger'
 import { PresetPM, PresetPMVersionArgName } from './benchmark-shared'
-import { homedir } from 'node:os'
 
 interface DetectOptions {
   env?: NodeJS.ProcessEnv
@@ -48,9 +48,9 @@ export class IO {
   }
 
   static cleanDir(dir: string, cb: () => void) {
+    cb()
     if (!existsSync(dir)) return
     rimrafSync(dir)
-    cb()
   }
 
   static statFolder(dir: string): number {

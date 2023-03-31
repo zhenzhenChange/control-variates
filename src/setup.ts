@@ -3,7 +3,6 @@
  * @see https://github.com/yarnpkg/berry/blob/master/scripts/bench-run.sh
  */
 
-import { join } from 'node:path'
 import { rimrafSync } from 'rimraf'
 
 import { IO } from './benchmark-io'
