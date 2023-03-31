@@ -9,11 +9,15 @@ pnpm i
 pnpm benchmark
 ```
 
-```text
-# Benchmark Results:
-## pm_benchmarks/run-result-[fixture.name || fixture.index]/benchmark.html
-## pm_benchmarks/run-result-[fixture.name || fixture.index]/benchmark.json
-```
+## Benchmark Results
+
+- `pm_benchmarks/run-[fixture.name || fixture.index]-results/benchmark.html`
+- `pm_benchmarks/run-[fixture.name || fixture.index]-results/benchmark.json`
+
+## Benchmark References
+
+- [https://pnpm.io/benchmarks](https://pnpm.io/benchmarks)
+- [https://yarnpkg.com/benchmarks](https://yarnpkg.com/benchmarks)
 
 ## Dependencies
 

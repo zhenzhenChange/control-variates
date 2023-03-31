@@ -10,6 +10,7 @@ import {
   BenchmarkResult,
   Fixture,
   Installer,
+  InstallerRuntimeConfig,
   PMCommandArgs,
   PresetPMLockFileName,
   PresetPMMap,
@@ -84,23 +85,18 @@ export class Benchmark {
       Logger.Info('## retrieved pkgfile:', fixturePkgPath)
 
       const results = this.#installers.map((installer) => {
-        const runDir = join(this.#workspace, `run-${installer.pm}-${fixture.name ?? i}`)
+        const runDir = join(this.#workspace, `run-${fixture.name ?? i}-${installer.pm}`)
         const runPkgPath = join(runDir, BenchmarkConfig.PKG_FILE_NAME)
 
         mkdirSync(runDir, { recursive: true })
         copyFileSync(fixturePkgPath, runPkgPath)
 
-        const { pairs, filename, delimiter } = installer.runtimeConfig
-
-        const registry = `registry${delimiter}${this.#benchmarkConfig.registry}`
-        const normalizedPairs = [registry, ...pairs.map(({ key, val }) => `${key}${delimiter}${val}`)]
-
-        writeFileSync(join(runDir, filename), normalizedPairs.join('\r\n'))
+        this.#createRc(runDir, installer.runtimeConfig)
 
         return this.#runTask(runDir, installer)
       })
 
-      const outputDir = join(this.#workspace, `run-results-${fixture.name ?? i}`)
+      const outputDir = join(this.#workspace, `run-${fixture.name ?? i}-results`)
       mkdirSync(outputDir, { recursive: true })
 
       const outputHTMLDir = join(outputDir, 'benchmark.html')
@@ -143,11 +139,13 @@ export class Benchmark {
       return mergedVariatesHeart
     }
 
-    const runInstallGo = () => {
+    const runInstallPost = () => IO.statFolder(runDir)
+
+    const runInstallProcess = () => {
       Logger.Wrap()
 
       const TimeS = Date.now()
-      IO.spawnSync(pm, ['install'], { cwd: runDir, stdio: 'inherit' })
+      IO.spawnSync(pm, ['install'], { env: runEnv, cwd: runDir, stdio: 'inherit' })
       const TimeE = Date.now()
 
       Logger.Wrap()
@@ -155,17 +153,15 @@ export class Benchmark {
       return TimeE - TimeS
     }
 
-    const runInstallPost = () => IO.statFolder(runDir)
-
     const runInstall = (cache: boolean, lockfile: boolean, node_modules: boolean): BenchmarkRecord => {
-      const variates = runInstallPre(cache, lockfile, node_modules)
-      const time = runInstallGo()
+      const vars = runInstallPre(cache, lockfile, node_modules)
+      const time = runInstallProcess()
       const size = runInstallPost()
 
       Logger.Important(`## 👆 Time consuming: ${parsedPMVersion} -> ${IO.byteToMiB(size)} | ${IO.msToSeconds(time)}`)
       Logger.Wrap()
 
-      return { time, size, variates }
+      return { time, size, vars }
     }
 
     return {
@@ -181,6 +177,16 @@ export class Benchmark {
         runInstall(false, true, true),
       ],
     }
+  }
+
+  #createRc(runDir: string, runtimeConfig: InstallerRuntimeConfig) {
+    const lineBreak = '\r\n'
+    const { pairs, delimiter, filename } = runtimeConfig
+
+    const registry = `registry${delimiter}${this.#benchmarkConfig.registry}`
+    const normalizedPairs = [registry, ...pairs.map(({ key, val }) => `${key}${delimiter}${val}`)]
+
+    writeFileSync(join(runDir, filename), `${normalizedPairs.join(lineBreak)}${lineBreak}`)
   }
 
   #cleanLockFile(runDir: string, lockFileName: PresetPMLockFileName) {

@@ -3,10 +3,11 @@
  * @see https://github.com/yarnpkg/berry/blob/master/scripts/bench-run.sh
  */
 
+import { join } from 'node:path'
 import { rimrafSync } from 'rimraf'
-import { join, resolve } from 'node:path'
 
 import { IO } from './benchmark-io'
+import { Logger } from './benchmark-logger'
 import { Benchmark } from './benchmark'
 
 new Benchmark([
@@ -20,11 +21,15 @@ new Benchmark([
       pm: 'npm',
       lockFileName: 'package-lock.json',
       cacheCleaner: (pm) => {
-        IO.spawnSync(pm, ['config', 'get', 'cache'], { stdio: 'inherit' })
-        IO.spawnSync(pm, ['cache', 'clean', '--force'], { stdio: 'inherit' })
+        Logger.Info('## clean cache:', IO.execShell(pm, ['config', 'get', 'cache']))
+
+        IO.spawnSync(pm, ['cache', 'clean', '--force'])
       },
+      // https://docs.npmjs.com/cli/v9/using-npm/config
       runtimeConfig: {
         pairs: [
+          { key: 'fund', val: false },
+          { key: 'audit', val: false },
           { key: 'ignore-scripts', val: true },
           { key: 'legacy-peer-deps', val: true },
         ],
@@ -36,9 +41,11 @@ new Benchmark([
       pm: 'yarn',
       lockFileName: 'yarn.lock',
       cacheCleaner: (pm) => {
-        IO.spawnSync(pm, ['cache', 'dir'], { stdio: 'inherit' })
-        IO.spawnSync(pm, ['cache', 'clean'], { stdio: 'inherit' })
+        Logger.Info('## clean cache:', IO.execShell(pm, ['cache', 'dir']))
+
+        IO.spawnSync(pm, ['cache', 'clean'])
       },
+      // @see https://classic.yarnpkg.com/en/docs/yarnrc
       runtimeConfig: {
         pairs: [{ key: 'ignore-scripts', val: true }],
         filename: '.yarnrc',
@@ -49,12 +56,15 @@ new Benchmark([
       pm: 'pnpm',
       lockFileName: 'pnpm-lock.yaml',
       cacheCleaner: (pm) => {
-        const storeDir = IO.spawnSync(pm, ['store', 'path'], { encoding: 'utf-8' })
-        rimrafSync(resolve(storeDir.stdout.trim()))
+        const storeDir = IO.execShell(pm, ['store', 'path'])
+        Logger.Info('## clean store:', storeDir)
+        rimrafSync(storeDir)
 
         const cacheDir = join(process.env['LOCALAPPDATA']!, 'pnpm-cache')
+        Logger.Info('## clean cache:', cacheDir)
         rimrafSync(cacheDir)
       },
+      // @see https://pnpm.io/npmrc
       runtimeConfig: {
         pairs: [
           { key: 'ignore-scripts', val: true },

@@ -112,7 +112,7 @@ export interface BenchmarkRecord {
   /** @description 磁盘占用（byte） */
   size: number
   /** @description 控制变量 */
-  variates: string
+  vars: string
 }
 
 interface KV {
@@ -122,7 +122,7 @@ interface KV {
   val: string | number | boolean
 }
 
-interface InstallerRuntimeConfig {
+export interface InstallerRuntimeConfig {
   pairs: KV[]
   filename: PresetPMRcFileName
   delimiter: LiteralUnion<': ' | ' = '>

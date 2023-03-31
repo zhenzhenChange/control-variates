@@ -28,6 +28,13 @@ export class IO {
     return decode(strToBuffer, this.ENCODING_ICONV).replace(/\r\n/g, '').trim()
   }
 
+  static execShell(command: string, commandArgs: string[]) {
+    const { error, stderr, stdout } = spawnSync(command, commandArgs, { encoding: this.ENCODING_STDIO })
+
+    if (!error) return this.decode(stdout)
+    throw new Error(this.decode(stderr))
+  }
+
   static detectPMVersion(pm: PresetPM, options: DetectOptions = {}) {
     const { cwd, env, command = '--version' } = options
     const { error, stderr, stdout } = spawnSync(pm, [command], { cwd, env, encoding: this.ENCODING_STDIO })

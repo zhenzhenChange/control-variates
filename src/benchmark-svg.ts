@@ -7,6 +7,6 @@ import { BenchmarkResult } from './benchmark-shared'
 export function createSVGTemplate(documentTitle: string, benchmarkResults: BenchmarkResult[]) {
   return readFileSync(join(process.cwd(), 'SVG-Template.html'), { encoding: 'utf8' })
     .replace(/\{\{\s+documentTitle\s+\}\}/gi, documentTitle)
-    .replace(/\{\{\s+benchmarkYAxis\s+\}\}/gi, JSON.stringify(benchmarkResults[0].records.map((record) => record.variates)))
+    .replace(/\{\{\s+benchmarkYAxis\s+\}\}/gi, JSON.stringify(benchmarkResults[0].records.map((record) => record.vars)))
     .replace(/\{\{\s+benchmarkResults\s+\}\}/gi, JSON.stringify(benchmarkResults))
 }
