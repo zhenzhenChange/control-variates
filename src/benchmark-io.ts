@@ -58,11 +58,12 @@ export class IO {
     const loop = (path: string) => {
       const stat = lstatSync(path)
 
-      if (stat.isFile()) {
-        map.set(stat.ino, stat.size)
-      } else {
+      // NOTE：.bin/xxx is not a file
+      if (stat.isDirectory()) {
         // TODO To Async
         readdirSync(path).forEach((subPath) => loop(join(path, subPath)))
+      } else {
+        map.set(stat.ino, stat.size)
       }
     }
 
