@@ -56,13 +56,13 @@ pnpm benchmark
 |  command  | cache | lockfile | node_modules |
 | :-------: | :---: | :------: | :----------: |
 | `install` |       |          |              |
+| `install` |   ✔   |    ✔     |      ✔       |
 | `install` |   ✔   |          |              |
 | `install` |       |    ✔     |              |
 | `install` |       |          |      ✔       |
 | `install` |   ✔   |    ✔     |              |
 | `install` |   ✔   |          |      ✔       |
 | `install` |       |    ✔     |      ✔       |
-| `install` |   ✔   |    ✔     |      ✔       |
 
 ## Todo
 

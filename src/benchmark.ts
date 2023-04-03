@@ -170,6 +170,7 @@ export class Benchmark {
       version,
       records: [
         runInstall(false, false, false),
+        runInstall(true, true, true),
         runInstall(true, false, false),
         runInstall(false, true, false),
         runInstall(false, false, true),
