@@ -1,3 +1,4 @@
+import { v4 } from 'uuid'
 import { join } from 'node:path'
 import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs'
 
@@ -43,15 +44,13 @@ export class Benchmark {
 
   #config(config?: Partial<BenchmarkConfig>) {
     Logger.Wrap()
-
-    const { cwd, cleanLegacy } = (this.#benchmarkConfig = new BenchmarkConfig(config))
-
     Logger.Tips(`# Stage-PrepareWorkSpace`)
-    Logger.Info(`## deploy workspace:`, cwd)
-    Logger.Info(`## deploy directory:`, BenchmarkConfig.DIRECTORY)
 
-    cleanLegacy && IO.removeWorkSpace(cwd, BenchmarkConfig.DIRECTORY)
-    this.#workspace = IO.createWorkSpace(cwd, BenchmarkConfig.DIRECTORY)
+    const { cwd, cleanLegacy, workspacePrefix } = (this.#benchmarkConfig = new BenchmarkConfig(config))
+
+    IO.ignoreWorkSpace(cwd, workspacePrefix)
+    cleanLegacy && IO.removeWorkSpace(cwd, workspacePrefix)
+    this.#workspace = IO.createWorkSpace(cwd, `${workspacePrefix}-${v4().split('-').pop()}`)
 
     return { register: (installers: Installer[]) => this.#register(installers) }
   }

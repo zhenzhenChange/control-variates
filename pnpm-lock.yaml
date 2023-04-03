@@ -7,6 +7,9 @@ devDependencies:
   '@types/node':
     specifier: ^16.18.23
     version: 16.18.23
+  '@types/uuid':
+    specifier: ^9.0.1
+    version: 9.0.1
   chalk:
     specifier: ^5.2.0
     version: 5.2.0
@@ -25,6 +28,9 @@ devDependencies:
   typescript:
     specifier: ^5.0.2
     version: 5.0.2
+  uuid:
+    specifier: ^9.0.0
+    version: 9.0.0
 
 packages:
 
@@ -257,6 +263,10 @@ packages:
     resolution: {integrity: sha512-XAMpaw1s1+6zM+jn2tmw8MyaRDIJfXxqmIQIS0HfoGYPuf7dUWeiUKopwq13KFX9lEp1+THGtlaaYx39Nxr58g==}
     dev: true
 
+  /@types/uuid@9.0.1:
+    resolution: {integrity: sha512-rFT3ak0/2trgvp4yYZo5iKFEPsET7vKydKF+VRCxlQ9bpheehyAJH89dAkaLEq/j/RZXJIqcgsmPJKUP1Z28HA==}
+    dev: true
+
   /balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
     dev: true
@@ -432,6 +442,11 @@ packages:
   /typescript@5.0.2:
     resolution: {integrity: sha512-wVORMBGO/FAs/++blGNeAVdbNKtIh1rbBL2EyQ1+J9lClJ93KiiKe8PmFIVdXhHcyv44SL9oglmfeSsndo0jRw==}
     engines: {node: '>=12.20'}
+    hasBin: true
+    dev: true
+
+  /uuid@9.0.0:
+    resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
     hasBin: true
     dev: true
 

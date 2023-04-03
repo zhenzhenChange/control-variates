@@ -4,7 +4,7 @@ import { rimrafSync } from 'rimraf'
 import { sync as spawnSync } from 'cross-spawn'
 import { env, execPath, platform } from 'node:process'
 import { delimiter, dirname, join } from 'node:path'
-import { existsSync, lstatSync, mkdirSync, readdirSync } from 'node:fs'
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 
 import { Logger } from './benchmark-logger'
 import { PresetPM, PresetPMVersionArgName } from './benchmark-shared'
@@ -141,9 +141,9 @@ export class IO {
     return workspace
   }
 
-  static removeWorkSpace(cwd: string, directory: string) {
+  static removeWorkSpace(cwd: string, workspacePrefix: string) {
     const cachedDir = readdirSync(cwd)
-      .filter((dir) => dir === directory)
+      .filter((dir) => dir.includes(workspacePrefix))
       .map((dir) => join(cwd, dir))
 
     if (!cachedDir.length) return
@@ -153,5 +153,19 @@ export class IO {
     // TODO 增加删除 Loading | 合并遍历 | To Async
     cachedDir.forEach((dir) => Logger.Warn(`## workspace directory deleted: ${dir}`))
     rimrafSync(cachedDir)
+  }
+
+  static ignoreWorkSpace(cwd: string, workspacePrefix: string) {
+    const path = join(cwd, '.gitignore')
+    const content = readFileSync(path, { encoding: 'utf8' })
+
+    const delimiter = '\r\n'
+    const ignorePattern = `${workspacePrefix}-*`
+    const hasIgnorePattern = content.split(delimiter).some((item) => item === ignorePattern)
+    const mergedIgnorePattern = `${content}${delimiter}${workspacePrefix}-*${delimiter}`
+
+    Logger.Info('## ignored workspace directory:', `${ignorePattern} >>> ${path}`)
+    if (hasIgnorePattern) return
+    writeFileSync(path, mergedIgnorePattern)
   }
 }

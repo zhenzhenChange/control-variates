@@ -14,11 +14,13 @@
   "devDependencies": {
     "@types/cross-spawn": "^6.0.2",
     "@types/node": "^16.18.23",
+    "@types/uuid": "^9.0.1",
     "chalk": "^5.2.0",
     "cross-spawn": "^7.0.3",
     "iconv-lite": "^0.6.3",
     "rimraf": "^4.4.1",
     "tsx": "^3.12.6",
-    "typescript": "^5.0.2"
+    "typescript": "^5.0.2",
+    "uuid": "^9.0.0"
   }
 }

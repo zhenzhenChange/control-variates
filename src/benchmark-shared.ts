@@ -27,19 +27,24 @@ export class PMCommandArgs {
 }
 
 export class BenchmarkConfig {
-  static readonly DIRECTORY = 'pm_benchmarks'
   static readonly NODE_MODULES = 'node_modules'
   static readonly PKG_FILE_NAME = 'package.json'
 
   /**
    * @default process.cwd()
    * @description 当前工作目录
+   *
+   * ---
+   *
+   * 以此为起点路径，用于：
+   * - `fixture`寻址
+   * - `workspace`创建/删除
    */
   cwd: string
 
   /**
    * @default 3
-   * @description 测试轮数
+   * @description 执行轮数
    */
   rounds: number
 
@@ -57,7 +62,7 @@ export class BenchmarkConfig {
 
   /**
    * @default false
-   * @description 是否清理遗留产物
+   * @description 是否清理过往的遗留产物
    */
   cleanLegacy: boolean
 
@@ -67,6 +72,12 @@ export class BenchmarkConfig {
    */
   skipPMInstall: boolean
 
+  /**
+   * @default node_benchmarks
+   * @description 工作空间前缀（同时也会将此前缀添加到`.gitignore`中）
+   */
+  workspacePrefix: string
+
   constructor(config?: Partial<BenchmarkConfig>) {
     this.cwd = config?.cwd ?? process.cwd()
     this.rounds = config?.rounds ?? 3
@@ -74,6 +85,7 @@ export class BenchmarkConfig {
     this.monorepo = config?.monorepo ?? false
     this.cleanLegacy = config?.cleanLegacy ?? false
     this.skipPMInstall = config?.skipPMInstall ?? false
+    this.workspacePrefix = config?.workspacePrefix ?? 'node_benchmarks'
   }
 }
 
