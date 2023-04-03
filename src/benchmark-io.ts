@@ -1,6 +1,6 @@
 import { decode } from 'iconv-lite'
-import { homedir } from 'node:os'
 import { rimrafSync } from 'rimraf'
+import { EOL, homedir } from 'node:os'
 import { sync as spawnSync } from 'cross-spawn'
 import { env, execPath, platform } from 'node:process'
 import { delimiter, dirname, join } from 'node:path'
@@ -159,10 +159,9 @@ export class IO {
     const path = join(cwd, '.gitignore')
     const content = readFileSync(path, { encoding: 'utf8' })
 
-    const delimiter = '\r\n'
     const ignorePattern = `${workspacePrefix}-*`
-    const hasIgnorePattern = content.split(delimiter).some((item) => item === ignorePattern)
-    const mergedIgnorePattern = `${content}${delimiter}${workspacePrefix}-*${delimiter}`
+    const hasIgnorePattern = content.includes(ignorePattern)
+    const mergedIgnorePattern = `${content}${EOL}${workspacePrefix}-*${EOL}`
 
     Logger.Info('## ignored workspace directory:', `${ignorePattern} >>> ${path}`)
     if (hasIgnorePattern) return
