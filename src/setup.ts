@@ -10,6 +10,7 @@ import { Logger } from './benchmark-logger'
 import { Benchmark } from './benchmark'
 
 new Benchmark([
+  { dir: './fixtures/angular', name: 'angular' },
   { dir: './fixtures/example', name: 'example' },
   { dir: './fixtures/playground', name: 'playground' },
 ])
