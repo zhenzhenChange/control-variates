@@ -1,25 +1,25 @@
 # Control Variates
 
-Automated testing using the control variable method.
+使用控制变量法进行自动化测试。
 
-## Bootstrap
+## 启动
 
 ```shell
 pnpm i
 pnpm benchmark
 ```
 
-## Benchmark Results
+## 基准测试结果
 
 - `xxx/run-[fixture.name || fixture.index]-results/benchmark.html`
 - `xxx/run-[fixture.name || fixture.index]-results/benchmark.json`
 
-## Benchmark References
+## 基准测试参考
 
 - [https://pnpm.io/benchmarks](https://pnpm.io/benchmarks)
 - [https://yarnpkg.com/benchmarks](https://yarnpkg.com/benchmarks)
 
-## Dependencies
+## 依赖
 
 - `tsx`: Executing code in node using ESM and TS.
 - `uuid`: Generate a random temporary directory.
@@ -29,7 +29,7 @@ pnpm benchmark
 - `iconv-lite`: Solving the problem of messy Chinese output on the console.
 - `cross-spawn`: Cross-platform compatible sub-process calls.
 
-## Variables
+## 变量
 
 系统参数：
 
@@ -79,8 +79,4 @@ pnpm benchmark
   - [ ] 删除进度
 - [ ] 支持`monorepo`
 - [ ] 支持多线程（支持限制系统参数）
-  - [ ] 尝试使用 Rust 重写
-
-## 重点审查
-
-- [ ] 根据跑分结果，分析并总结其内部结构与工作流程
+  - [ ] Rewritten with Rust
