@@ -38,7 +38,7 @@
         yAxis: { type: 'category', data: benchmarkYAxis },
         series: benchmarkResults.map((result) => ({
           type: 'bar',
-          name: result.pm,
+          name: `${result.pm} v${result.version}`,
           data: result.records.map((record) => record.time),
           label: {
             show: true,
