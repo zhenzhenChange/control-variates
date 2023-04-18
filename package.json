@@ -20,7 +20,7 @@
     "iconv-lite": "^0.6.3",
     "rimraf": "^4.4.1",
     "tsx": "^3.12.6",
-    "typescript": "^5.0.2",
+    "typescript": "^5.0.4",
     "uuid": "^9.0.0"
   }
 }
