@@ -1,6 +1,7 @@
 import { v4 } from 'uuid'
 import { join } from 'node:path'
-import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs'
+import { StdioOptions } from 'node:child_process'
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 
 import { IO } from './benchmark-io'
 import { Logger } from './benchmark-logger'
@@ -13,6 +14,7 @@ import {
   Installer,
   InstallerRuntimeConfig,
   PMCommandArgs,
+  PkgManifest,
   PresetPMLockFileName,
   PresetPMMap,
 } from './benchmark-shared'
@@ -141,7 +143,7 @@ export class Benchmark {
 
     const runInstallPost = () => IO.statFolder(runDir)
 
-    const runInstallProcess = () => {
+    const runInstallProcess = (stdio: StdioOptions = 'inherit') => {
       Logger.Wrap()
 
       const TimeS = Date.now()
@@ -164,19 +166,51 @@ export class Benchmark {
       return { time, size, vars }
     }
 
+    const records = [
+      runInstall(false, false, false),
+      runInstall(true, true, true),
+      runInstall(true, false, false),
+      runInstall(false, true, false),
+      runInstall(false, false, true),
+      runInstall(true, true, false),
+      runInstall(true, false, true),
+      runInstall(false, true, true),
+    ]
+
+    if (this.#benchmarkConfig.dynamicDepDir) {
+      const vars = `dynamic deps changed`
+      Logger.Important(`## 👇 Control variates: ${vars}`)
+
+      // NOTE：重新安装一次，保证所有工件都存在
+      runInstallProcess('ignore')
+
+      const { cwd, dynamicDepDir } = this.#benchmarkConfig
+
+      const dynPkgString = readFileSync(join(cwd, dynamicDepDir), { encoding: 'utf8' })
+      const dynPkgObject = JSON.parse(dynPkgString) as PkgManifest
+
+      const pkgPath = join(runDir, BenchmarkConfig.PKG_FILE_NAME)
+      const pkgString = readFileSync(pkgPath, { encoding: 'utf8' })
+      const pkgObject = JSON.parse(pkgString) as PkgManifest
+
+      pkgObject.dependencies = { ...pkgObject.dependencies, ...dynPkgObject.dependencies }
+      pkgObject.devDependencies = { ...pkgObject.devDependencies, ...dynPkgObject.devDependencies }
+
+      writeFileSync(pkgPath, JSON.stringify(pkgObject, null, 2))
+
+      const time = runInstallProcess()
+      const size = runInstallPost()
+
+      Logger.Important(`## 👆 Time consuming: ${parsedPMVersion} -> ${IO.byteToMiB(size)} | ${IO.msToSeconds(time)}`)
+      Logger.Wrap()
+
+      records.push({ vars, time, size })
+    }
+
     return {
       pm,
       version,
-      records: [
-        runInstall(false, false, false),
-        runInstall(true, true, true),
-        runInstall(true, false, false),
-        runInstall(false, true, false),
-        runInstall(false, false, true),
-        runInstall(true, true, false),
-        runInstall(true, false, true),
-        runInstall(false, true, true),
-      ],
+      records,
     }
   }
 

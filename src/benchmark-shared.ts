@@ -38,6 +38,7 @@ export class BenchmarkConfig {
    *
    * 以此为起点路径，用于：
    * - `fixture`寻址
+   * - `dynamic`寻址
    * - `workspace`创建/删除
    */
   cwd: string
@@ -67,6 +68,12 @@ export class BenchmarkConfig {
   cleanLegacy: boolean
 
   /**
+   * @default null
+   * @description 动态依赖内容路径
+   */
+  dynamicDepDir: string | null
+
+  /**
    * @default false
    * @description 是否跳过包管理器的安装（Debug Only）
    */
@@ -84,6 +91,7 @@ export class BenchmarkConfig {
     this.registry = config?.registry ?? 'https://registry.npmjs.org/'
     this.monorepo = config?.monorepo ?? false
     this.cleanLegacy = config?.cleanLegacy ?? false
+    this.dynamicDepDir = config?.dynamicDepDir ?? null
     this.skipPMInstall = config?.skipPMInstall ?? false
     this.workspacePrefix = config?.workspacePrefix ?? 'node_benchmarks'
   }
@@ -138,4 +146,9 @@ export interface InstallerRuntimeConfig {
   pairs: KV[]
   filename: PresetPMRcFileName
   delimiter: LiteralUnion<': ' | ' = '>
+}
+
+export interface PkgManifest {
+  dependencies?: Record<string, string>
+  devDependencies?: Record<string, string>
 }

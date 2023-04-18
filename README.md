@@ -11,8 +11,8 @@ pnpm benchmark
 
 ## Benchmark Results
 
-- `pm_benchmarks/run-[fixture.name || fixture.index]-results/benchmark.html`
-- `pm_benchmarks/run-[fixture.name || fixture.index]-results/benchmark.json`
+- `xxx/run-[fixture.name || fixture.index]-results/benchmark.html`
+- `xxx/run-[fixture.name || fixture.index]-results/benchmark.json`
 
 ## Benchmark References
 
@@ -22,6 +22,7 @@ pnpm benchmark
 ## Dependencies
 
 - `tsx`: Executing code in node using ESM and TS.
+- `uuid`: Generate a random temporary directory.
 - `chalk`: Beautifying console output.
 - `rimraf`: For file deletion.
 - `typescript`: Written with TS.
@@ -63,6 +64,7 @@ pnpm benchmark
 | `install` |   ✔   |    ✔     |              |
 | `install` |   ✔   |          |      ✔       |
 | `install` |       |    ✔     |      ✔       |
+| `dynamic` |  N/A  |   N/A    |     N/A      |
 
 ## Todo
 
@@ -76,8 +78,7 @@ pnpm benchmark
   - [ ] 删除耗时
   - [ ] 删除进度
 - [ ] 支持`monorepo`
-- [ ] 支持变更依赖内容
-- [ ] 支持多线程（限制系统参数）
+- [ ] 支持多线程（支持限制系统参数）
   - [ ] 尝试使用 Rust 重写
 
 ## 重点审查

@@ -15,7 +15,7 @@ new Benchmark([
   { dir: './fixtures/playground', name: 'playground' },
 ])
   .use('pnpm', 'add')
-  .config({ cleanLegacy: true })
+  .config({ cleanLegacy: true, dynamicDepDir: './fixtures/dynamic-package.json' })
   .register([
     {
       pm: 'npm',
