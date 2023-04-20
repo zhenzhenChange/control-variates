@@ -32,6 +32,8 @@ new Benchmark([
           { key: 'audit', val: false },
           { key: 'ignore-scripts', val: true },
           { key: 'legacy-peer-deps', val: true },
+          { key: 'child-concurrency', val: 5 },
+          { key: 'network-concurrency', val: 16 },
         ],
         filename: '.npmrc',
         delimiter: ' = ',
@@ -47,7 +49,11 @@ new Benchmark([
       },
       // @see https://classic.yarnpkg.com/en/docs/yarnrc
       runtimeConfig: {
-        pairs: [{ key: 'ignore-scripts', val: true }],
+        pairs: [
+          { key: 'ignore-scripts', val: true },
+          { key: 'child-concurrency', val: 5 },
+          { key: 'network-concurrency', val: 16 },
+        ],
         filename: '.yarnrc',
         delimiter: ': ',
       },
@@ -69,6 +75,8 @@ new Benchmark([
         pairs: [
           { key: 'ignore-scripts', val: true },
           { key: 'strict-peer-dependencies', val: false },
+          { key: 'child-concurrency', val: 5 },
+          { key: 'network-concurrency', val: 16 },
         ],
         filename: '.npmrc',
         delimiter: ' = ',
